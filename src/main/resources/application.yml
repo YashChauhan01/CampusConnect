@@ -22,7 +22,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   # Flyway Database Migrations
   flyway:
@@ -62,7 +61,7 @@ app:
   secure-cookies: ${SECURE_COOKIES:false}
 
   # College Email Verification
-  approved-domains: ${APPROVED_DOMAINS:example.edu}
+  approved-domains: ${APPROVED_DOMAINS:example.edu, gmail.com, yahoo.com}
   verification-minutes: ${VERIFICATION_MINUTES:30}
 
   # Campus Presence
