@@ -85,3 +85,4 @@ logging:
     edu.campusconnect: INFO
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
+
