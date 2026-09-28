@@ -1,41 +1,48 @@
 package edu.campusconnect.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
+import org.springframework.data.redis.core.index.Indexed;
 
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
-@Entity
-@Table(name = "presence")
+@RedisHash("Presence")
 public class Presence {
     @Id
-    @Column(name = "student_id")
-    public UUID studentId;
-    @MapsId
-    @OneToOne(optional = false)
-    @JoinColumn(name = "student_id")
-    public Student student;
-    @ManyToOne
-    @JoinColumn(name = "zone_id")
-    public CampusZone zone;
-    @Enumerated(EnumType.STRING)
+    public UUID id;
+    public String studentName;
+    @Indexed
+    public Long zoneId;
+    public String zoneName;
+    @Indexed
     public Status status;
-    @Column(name = "expires_at")
     public Instant expiresAt;
-    @Column(name = "updated_at")
     public Instant updatedAt;
+    @TimeToLive
+    public Long timeToLiveSeconds;
 
     public enum Status {AVAILABLE, BUSY}
 
     protected Presence() {
     }
 
-    public Presence(Student s, CampusZone z, Status status, Instant expires) {
-        studentId = s.id;
-        student = s;
-        zone = z;
+    public Presence(UUID studentId, String studentName, Long zoneId, String zoneName,
+                    Status status, Duration timeToLive) {
+        if (timeToLive.isZero() || timeToLive.isNegative()) {
+            throw new IllegalArgumentException("Presence TTL must be positive");
+        }
+
+        Instant now = Instant.now();
+        id = studentId;
+        this.studentName = studentName;
+        this.zoneId = zoneId;
+        this.zoneName = zoneName;
         this.status = status;
-        expiresAt = expires;
-        updatedAt = Instant.now();
+        expiresAt = now.plus(timeToLive);
+        updatedAt = now;
+        timeToLiveSeconds = timeToLive.getSeconds();
     }
 }
