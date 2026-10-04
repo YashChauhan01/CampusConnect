@@ -1,3 +1,36 @@
 package edu.campusconnect.security;
-import edu.campusconnect.model.Student;import edu.campusconnect.repo.StudentRepository;import org.springframework.security.core.context.SecurityContextHolder;import org.springframework.stereotype.Component;import org.springframework.web.server.ResponseStatusException;import org.springframework.http.HttpStatus;import java.util.*;
-@Component public class CurrentStudent {private final StudentRepository repo;public CurrentStudent(StudentRepository repo){this.repo=repo;}public Student get(){Object p=SecurityContextHolder.getContext().getAuthentication().getPrincipal();if(!(p instanceof UUID id))throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);return repo.findById(id).filter(s->s.verified).orElseThrow(()->new ResponseStatusException(HttpStatus.UNAUTHORIZED));}}
+
+import edu.campusconnect.common.ApiException;
+import edu.campusconnect.student.Student;
+import edu.campusconnect.student.StudentRepository;
+import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+
+/** Access to the authenticated student of the current request. */
+@Component
+public class CurrentStudent {
+
+    private final StudentRepository students;
+
+    public CurrentStudent(StudentRepository students) {
+        this.students = students;
+    }
+
+    /** Id taken from the verified token; does not touch the database. */
+    public UUID id() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof UUID id)) {
+            throw ApiException.unauthorized("Authentication required");
+        }
+        return id;
+    }
+
+    /** The persisted, still-existing and verified student. */
+    public Student require() {
+        return students.findById(id())
+                .filter(Student::isVerified)
+                .orElseThrow(() -> ApiException.unauthorized("Account not available"));
+    }
+}

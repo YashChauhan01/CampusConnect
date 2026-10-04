@@ -1,87 +1,82 @@
-
 server:
   port: 8080
+  # Set to "native" when running behind a reverse proxy so rate limiting sees real client addresses.
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
+  shutdown: graceful
 
 spring:
   application:
     name: campusconnect
 
-  # PostgreSQL Database
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/campusconnect}
     username: ${DB_USER:campus}
     password: ${DB_PASSWORD:campus_dev_only}
-    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
 
-  # JPA / Hibernate
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        jdbc:
+          time_zone: UTC
 
-  # Flyway Database Migrations
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baseline-on-migrate: false
-    validate-on-migrate: true
 
-  # Redis
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      timeout: 2000ms
-
-  # Email Verification (Mailpit)
   mail:
     host: ${SMTP_HOST:localhost}
     port: ${SMTP_PORT:1025}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASSWORD:}
     properties:
       mail:
         smtp:
-          auth: false
+          auth: ${SMTP_AUTH:false}
           starttls:
-            enable: false
+            enable: ${SMTP_STARTTLS:false}
 
-# CampusConnect Application Configuration
 app:
-
-  # React Frontend
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
-
-  # JWT Authentication
+  # Required, at least 32 characters. Generate with: openssl rand -base64 48
   jwt-secret: ${JWT_SECRET}
-
-  # Cookies
   secure-cookies: ${SECURE_COOKIES:false}
-
-  # College Email Verification
-  approved-domains: ${APPROVED_DOMAINS:example.edu, gmail.com, yahoo.com}
+  # Comma separated list of college email domains that may register.
+  approved-domains: ${APPROVED_DOMAINS:college.edu}
   verification-minutes: ${VERIFICATION_MINUTES:30}
-
-  # Campus Presence
+  reset-minutes: ${RESET_MINUTES:30}
+  access-token-minutes: ${ACCESS_TOKEN_MINUTES:15}
+  refresh-token-days: ${REFRESH_TOKEN_DAYS:7}
   presence-minutes: ${PRESENCE_MINUTES:15}
+  bcrypt-strength: ${BCRYPT_STRENGTH:12}
+  mail:
+    mode: ${MAIL_MODE:smtp}
+    from: ${MAIL_FROM:noreply@campusconnect.local}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
 
-# Spring Boot Actuator
+springdoc:
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:false}
+  swagger-ui:
+    enabled: ${API_DOCS_ENABLED:false}
+
 management:
   endpoints:
     web:
       exposure:
         include: health,info
-
   endpoint:
     health:
-      show-details: when_authorized
+      probes:
+        enabled: true
+      show-details: never
 
-# Logging
 logging:
   level:
     root: INFO
     edu.campusconnect: INFO
-    org.springframework.security: WARN
-    org.hibernate.SQL: WARN

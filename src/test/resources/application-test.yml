@@ -1,0 +1,20 @@
+app:
+  frontend-url: http://localhost:5173
+  jwt-secret: test-secret-test-secret-test-secret-1234567890
+  approved-domains: college.edu, uni.ac.in
+  mail:
+    mode: test
+  rate-limit:
+    enabled: false
+  presence-minutes: 15
+  bcrypt-strength: 4
+
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+
+logging:
+  level:
+    root: WARN
+    edu.campusconnect: INFO

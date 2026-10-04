@@ -1,0 +1,17 @@
+# Local development profile (SPRING_PROFILES_ACTIVE=dev). Never use these values in production.
+app:
+  jwt-secret: ${JWT_SECRET:dev-only-secret-change-before-deployment-64-characters-minimum-12345}
+  mail:
+    mode: ${MAIL_MODE:log}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:false}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    edu.campusconnect: DEBUG
