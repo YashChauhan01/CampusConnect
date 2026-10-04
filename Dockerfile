@@ -6,7 +6,7 @@ COPY src src
 RUN mvn -q -B -DskipTests package
 
 FROM eclipse-temurin:21-jre
-RUN groupadd --system app && useradd --system --gid app --no-create-home app
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \n && groupadd --system app && useradd --system --gid app --no-create-home app
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 USER app
