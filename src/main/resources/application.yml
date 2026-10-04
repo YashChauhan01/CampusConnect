@@ -66,6 +66,10 @@ springdoc:
     enabled: ${API_DOCS_ENABLED:false}
 
 management:
+  health:
+    # Mail is sent asynchronously and failures are logged; an SMTP outage must not mark the service unhealthy.
+    mail:
+      enabled: false
   endpoints:
     web:
       exposure:
