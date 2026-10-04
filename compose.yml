@@ -27,15 +27,17 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       APPROVED_DOMAINS: ${APPROVED_DOMAINS:-college.edu}
       SECURE_COOKIES: ${SECURE_COOKIES:-false}
+      FORWARD_HEADERS_STRATEGY: native
       JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-before-deployment-64-characters-minimum-12345}
     ports: ["127.0.0.1:8080:8080"]
     depends_on:
       db: {condition: service_healthy}
       mailpit: {condition: service_started}
 
+  # nginx serves the built app and proxies /api and /ws to the backend (same origin, no CORS).
   frontend:
     build: ./frontend
-    ports: ["127.0.0.1:5173:5173"]
+    ports: ["127.0.0.1:5173:80"]
     depends_on: [backend]
 
 volumes:
