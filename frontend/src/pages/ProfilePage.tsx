@@ -1,12 +1,18 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
-import { profile as profileApi } from '../api/endpoints';
+import { assessments, profile as profileApi } from '../api/endpoints';
 import type { Item, Profile, Proficiency } from '../api/types';
 import { PROFICIENCIES } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
+import { AssessmentPanel } from '../components/AssessmentPanel';
 import { Alert, EmptyState, Field, LevelPill, PageHeader, levelLabel } from '../components/ui';
-import { useAction } from '../hooks';
+import { useAction, useLoad } from '../hooks';
 
 interface ItemEditorProps {
+  kind: 'SKILL' | 'SUBJECT';
+  /** Whether the server has AI skill verification switched on. */
+  aiEnabled: boolean;
+  /** Re-reads the profile after a check changed a verified level. */
+  onGraded: () => void;
   title: string;
   hint: string;
   placeholder: string;
@@ -17,7 +23,19 @@ interface ItemEditorProps {
 }
 
 /** Add / re-level / remove list of named things with a proficiency (used for skills and subjects). */
-function ItemEditor({ title, hint, placeholder, items, suggest, onSave, onRemove }: ItemEditorProps) {
+function ItemEditor({
+  kind,
+  aiEnabled,
+  onGraded,
+  title,
+  hint,
+  placeholder,
+  items,
+  suggest,
+  onSave,
+  onRemove,
+}: ItemEditorProps) {
+  const [assessing, setAssessing] = useState<Item | null>(null);
   const [name, setName] = useState('');
   const [level, setLevel] = useState<Proficiency>('INTERMEDIATE');
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -62,7 +80,12 @@ function ItemEditor({ title, hint, placeholder, items, suggest, onSave, onRemove
         <ul className="chips">
           {items.map((item) => (
             <li key={item.id}>
-              <LevelPill name={item.name} level={item.proficiency} />
+              <LevelPill name={item.name} level={item.proficiency} verifiedLevel={item.verifiedLevel} />
+              {aiEnabled && (
+                <button type="button" className="link small" onClick={() => setAssessing(item)}>
+                  {item.verifiedLevel ? 'Retake' : 'Verify'}
+                </button>
+              )}
               <button
                 type="button"
                 className="icon-button"
@@ -74,6 +97,16 @@ function ItemEditor({ title, hint, placeholder, items, suggest, onSave, onRemove
             </li>
           ))}
         </ul>
+      )}
+      {assessing && (
+        <AssessmentPanel
+          key={assessing.id}
+          kind={kind}
+          itemId={assessing.id}
+          name={assessing.name}
+          onClose={() => setAssessing(null)}
+          onGraded={onGraded}
+        />
       )}
       <form className="inline-form" onSubmit={submit}>
         <input
@@ -112,6 +145,8 @@ export function ProfilePage() {
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [saved, setSaved] = useState(false);
   const { pending, error, run } = useAction();
+  const ai = useLoad(() => assessments.status().catch(() => ({ enabled: false, questionCount: 0 })), []);
+  const aiEnabled = ai.data?.enabled ?? false;
 
   if (!profile) return null;
 
@@ -157,6 +192,9 @@ export function ProfilePage() {
         </section>
         <div className="stack">
           <ItemEditor
+            kind="SUBJECT"
+            aiEnabled={aiEnabled}
+            onGraded={() => void profileApi.me().then(setProfile)}
             title="Subjects"
             hint="Courses you study. Peer matching pairs you with students who share them."
             placeholder="Data Structures, DBMS…"
@@ -166,6 +204,9 @@ export function ProfilePage() {
             onRemove={(id) => apply(() => profileApi.removeSubject(id))}
           />
           <ItemEditor
+            kind="SKILL"
+            aiEnabled={aiEnabled}
+            onGraded={() => void profileApi.me().then(setProfile)}
             title="Skills"
             hint="Technologies you can build with. Hackathon teams are formed from these."
             placeholder="Java, React, Figma…"

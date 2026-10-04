@@ -1,5 +1,6 @@
 package edu.campusconnect.assessment;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.campusconnect.common.ApiException;
@@ -36,7 +37,9 @@ public class LlmSkillAssessor implements SkillAssessor {
     public LlmSkillAssessor(AiProperties props, ObjectMapper mapper) {
         this.props = props;
         this.mapper = mapper;
-        HttpClient http = HttpClient.newBuilder().connectTimeout(java.time.Duration.ofSeconds(5)).build();
+        // HTTP/1.1 explicitly: the default h2c upgrade attempt on plain http:// is rejected by many local servers.
+        HttpClient http = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(java.time.Duration.ofSeconds(5)).build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(http);
         factory.setReadTimeout(props.timeout());
         RestClient.Builder builder = RestClient.builder().baseUrl(trimTrailingSlash(props.baseUrl()))
@@ -112,7 +115,11 @@ public class LlmSkillAssessor implements SkillAssessor {
                 "messages", List.of(Map.of("role", "system", "content", system), Map.of("role", "user", "content", user)));
         String raw;
         try {
-            raw = client.post().uri("/chat/completions").body(body).retrieve().body(String.class);
+            // Pre-serialised so the request carries Content-Length; some proxies reject chunked request bodies.
+            raw = client.post().uri("/chat/completions").contentType(MediaType.APPLICATION_JSON)
+                    .body(mapper.writeValueAsString(body)).retrieve().body(String.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
         } catch (RestClientException e) {
             log.warn("AI provider call failed: {}", e.getMessage());
             throw new ApiException(HttpStatus.BAD_GATEWAY, "AI_UNAVAILABLE",

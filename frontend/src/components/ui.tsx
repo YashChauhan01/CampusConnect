@@ -44,11 +44,31 @@ export function levelLabel(level: Proficiency): string {
   return LEVEL_LABEL[level];
 }
 
-export function LevelPill({ name, level }: { name: string; level: Proficiency }) {
+export function LevelPill({
+  name,
+  level,
+  verifiedLevel,
+  verified,
+}: {
+  name: string;
+  level: Proficiency;
+  /** Profile view: the level confirmed by a check, shown next to the claim. */
+  verifiedLevel?: Proficiency | null;
+  /** Public view: `level` is already the trusted level; mark it as verified. */
+  verified?: boolean;
+}) {
+  const confirmed = verified || (verifiedLevel != null && verifiedLevel === level);
+  const lowered = verifiedLevel != null && verifiedLevel !== level;
   return (
     <span className={`pill level-${level.toLowerCase()}`} title={levelLabel(level)}>
       {name}
       <small>{levelLabel(level)}</small>
+      {confirmed && (
+        <span className="verified" title="Verified by a knowledge check" aria-label="verified">
+          ✓
+        </span>
+      )}
+      {lowered && verifiedLevel && <small className="lowered">verified: {levelLabel(verifiedLevel)}</small>}
     </span>
   );
 }

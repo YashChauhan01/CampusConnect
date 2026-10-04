@@ -78,6 +78,6 @@ partition independently.
 ## Limitations
 
 * Check-ins are self-reported; there is no GPS or Wi-Fi verification of the zone.
-* Proficiency is self-assessed. AI-assisted skill verification (an extension discussed in the proposal) is not
-  implemented.
+* Proficiency is self-assessed unless the optional AI skill verification is enabled (see the README). Verified levels
+  only cap a claim, so matching and team synthesis never trust more than the student claimed.
 * Zone coordinates are demonstration data (`V3__presence_context.sql`); replace them with the real campus map.

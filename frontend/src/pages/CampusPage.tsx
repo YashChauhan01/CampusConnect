@@ -233,7 +233,7 @@ function PersonCard({ person }: { person: PresenceView }) {
         {person.requirements && <p className="quote">“{person.requirements}”</p>}
         <div className="chips-inline">
           {person.subjects.map((s) => (
-            <LevelPill key={s.name} name={s.name} level={s.proficiency} />
+            <LevelPill key={s.name} name={s.name} level={s.proficiency} verified={s.verified} />
           ))}
         </div>
       </div>

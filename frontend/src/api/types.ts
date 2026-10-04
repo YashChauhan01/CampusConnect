@@ -6,6 +6,8 @@ export interface Item {
   id: number;
   name: string;
   proficiency: Proficiency;
+  /** Level confirmed by an AI-assisted check; never above `proficiency`. */
+  verifiedLevel: Proficiency | null;
 }
 
 export interface Profile {
@@ -43,7 +45,9 @@ export type PresenceStatus = 'AVAILABLE' | 'BUSY';
 
 export interface SubjectLevel {
   name: string;
+  /** The level the platform trusts (claim capped by verification). */
   proficiency: Proficiency;
+  verified: boolean;
 }
 
 export interface PresenceView {
@@ -200,4 +204,22 @@ export interface Push {
   kind: 'NOTIFICATION' | 'REFRESH';
   topic: 'matches' | 'hackathons' | 'presence';
   notification: NotificationView | null;
+}
+
+export interface AssessmentStatus {
+  enabled: boolean;
+  questionCount: number;
+}
+
+export interface Assessment {
+  id: string;
+  kind: 'SKILL' | 'SUBJECT';
+  itemId: number;
+  topic: string;
+  claimedLevel: Proficiency;
+  questions: string[];
+  status: 'PENDING' | 'GRADED';
+  score: number | null;
+  verifiedLevel: Proficiency | null;
+  feedback: string | null;
 }

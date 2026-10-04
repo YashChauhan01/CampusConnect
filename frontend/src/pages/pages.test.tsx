@@ -20,7 +20,7 @@ const profile: Profile = {
   bio: null,
   admin: false,
   skills: [],
-  subjects: [{ id: 7, name: 'DBMS', proficiency: 'BEGINNER' }],
+  subjects: [{ id: 7, name: 'DBMS', proficiency: 'BEGINNER', verifiedLevel: null }],
 };
 
 let currentProfile = profile;
@@ -63,6 +63,29 @@ describe('ProfilePage', () => {
     await user.click(within(screen.getByRole('heading', { name: 'Skills' }).closest('section')!).getByRole('button', { name: 'Add' }));
 
     expect(calls.find((c) => c.key === 'POST /students/me/skills')?.body).toEqual({ name: 'Java', proficiency: 'ADVANCED' });
+  });
+});
+
+describe('ProfilePage verification', () => {
+  it('offers verification only when the server has it enabled and shows the verified level', async () => {
+    currentProfile = {
+      ...profile,
+      subjects: [{ id: 7, name: 'DBMS', proficiency: 'ADVANCED', verifiedLevel: 'INTERMEDIATE' }],
+    };
+    mockApi({ 'GET /assessments/status': { body: { enabled: true, questionCount: 4 } } });
+    render(<ProfilePage />);
+
+    expect(await screen.findByRole('button', { name: 'Retake' })).toBeInTheDocument();
+    expect(screen.getByText('verified: Intermediate')).toBeInTheDocument();
+  });
+
+  it('hides verification when the feature is off', async () => {
+    currentProfile = profile;
+    mockApi({ 'GET /assessments/status': { body: { enabled: false, questionCount: 4 } } });
+    render(<ProfilePage />);
+
+    expect(await screen.findByText('DBMS')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Verify' })).not.toBeInTheDocument();
   });
 });
 

@@ -1,6 +1,8 @@
 import { api, authApi } from './client';
 import type {
   AdminZone,
+  Assessment,
+  AssessmentStatus,
   CheckInRequest,
   CreateHackathonRequest,
   HackathonDetail,
@@ -89,4 +91,10 @@ export const admin = {
   zones: () => api.get<AdminZone[]>('/admin/zones'),
   createZone: (zone: ZoneInput) => api.post<AdminZone>('/admin/zones', zone),
   updateZone: (id: number, zone: ZoneInput) => api.put<AdminZone>(`/admin/zones/${id}`, zone),
+};
+
+export const assessments = {
+  status: () => api.get<AssessmentStatus>('/assessments/status'),
+  start: (kind: 'SKILL' | 'SUBJECT', itemId: number) => api.post<Assessment>('/assessments', { kind, itemId }),
+  submit: (id: string, answers: string[]) => api.post<Assessment>(`/assessments/${id}/submit`, { answers }),
 };

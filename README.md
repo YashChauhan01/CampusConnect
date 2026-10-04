@@ -49,7 +49,7 @@ Open http://localhost:5173 and log in as `asha@college.edu` or `ravi@college.edu
 ## Tests
 
 ```bash
-mvn verify                                  # 117 backend tests (unit + integration on real PostgreSQL)
+mvn verify                                  # 138 backend tests (unit + integration on real PostgreSQL)
 cd frontend && npm test && npm run lint && npm run build
 mvn test -Dtest=EvaluationReport -Deval=true   # regenerate docs/EVALUATION.md
 ```
@@ -63,6 +63,8 @@ mvn test -Dtest=EvaluationReport -Deval=true   # regenerate docs/EVALUATION.md
 | Presence | `GET presence/zones`, `POST presence/check-in`, `POST presence/check-out`, `GET presence/me`, `GET presence/available` |
 | Peer matching | `POST matching/find`, `GET matching/suggestions`, `GET matching/matches/current`, `GET matching/matches`, `POST matching/matches/{id}/accept\|decline\|complete` |
 | Hackathons | `GET/POST hackathons`, `GET hackathons/{id}`, `PUT/DELETE hackathons/{id}/registration`, `POST …/close\|reopen\|synthesize\|publish`, `GET …/teams` |
+| Admin | `GET/POST admin/zones`, `PUT admin/zones/{id}` (administrators only) |
+| Skill verification | `GET assessments/status`, `POST assessments`, `POST assessments/{id}/submit` |
 | Notifications | `GET notifications`, `POST notifications/{id}/read`, `POST notifications/read-all` |
 | Real time | STOMP at `/ws` (token in the CONNECT frame); subscribe to `/user/queue/updates` and `/topic/presence` |
 
@@ -71,6 +73,22 @@ mvn test -Dtest=EvaluationReport -Deval=true   # regenerate docs/EVALUATION.md
 Everything is environment driven (see [.env.example](.env.example) and `application.yml`). The service refuses to start
 without a `JWT_SECRET` of at least 32 characters. Matching behaviour (weights, intervals, cool-downs, pool cap) is
 under `app.matching.*`.
+
+## Administrators and campus zones
+
+Put the administrators' emails in `ADMIN_EMAILS` (comma separated); they receive the role when they next log in and see a
+**Zones** page where they can add, rename, move, enable and disable campus zones (coordinates are metres on a campus
+plane; closer zones score higher in matching). Zones are disabled rather than deleted so history stays intact. In the dev
+profile `asha@college.edu` is an administrator.
+
+## AI skill verification (optional)
+
+Set `AI_ENABLED=true` plus `AI_BASE_URL`, `AI_API_KEY` and `AI_MODEL` for any OpenAI-compatible chat endpoint (a hosted
+provider, or a local server such as Ollama). Students then get a **Verify** button next to each skill and subject: they
+answer a few generated questions and a model grades them. A check can confirm or **lower** a self-assessed level, never
+raise it; matching, presence and team synthesis use the claim capped by the verified level, and editing a claim clears its
+old verification. Answers are escaped and fenced against prompt injection, replies are parsed strictly, and retakes are
+rate limited with a one-hour cool-down. With the feature off the buttons are hidden.
 
 ## Security notes
 
@@ -84,7 +102,6 @@ under `app.matching.*`.
 ## Known limitations
 
 * Zone check-ins are self-reported (no GPS / Wi-Fi verification) and expire after 15 minutes.
-* Proficiency is self-assessed; AI-assisted skill verification is not implemented.
+* Proficiency is self-assessed unless the optional AI verification is enabled; grades from a language model are an aid, not proof.
 * Zone coordinates in `V3__presence_context.sql` are demonstration data.
 * Exact matching is cubic in pool size; the pool is capped at 500 students per round (see EVALUATION.md).
-* No admin console yet: zones are managed in the database.
