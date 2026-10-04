@@ -40,7 +40,7 @@ class CandidateLoader {
         Map<Long, Integer> levels = new HashMap<>();
         Map<Long, String> names = new HashMap<>();
         for (StudentSubject s : subjects) {
-            levels.put(s.getSubject().getId(), s.getProficiency().weight());
+            levels.put(s.getSubject().getId(), s.effectiveLevel().weight());
             names.put(s.getSubject().getId(), s.getSubject().getName());
         }
         Set<Long> active = new HashSet<>();

@@ -260,7 +260,7 @@ public class HackathonService {
         Map<UUID, Map<String, Integer>> skills = new HashMap<>();
         for (StudentSkill s : studentSkills.findByStudents(ids)) {
             skills.computeIfAbsent(s.studentId(), k -> new HashMap<>())
-                    .put(s.getSkill().getName().toLowerCase(Locale.ROOT), s.getProficiency().weight());
+                    .put(s.getSkill().getName().toLowerCase(Locale.ROOT), s.effectiveLevel().weight());
         }
         return registered.stream().map(p -> new Participant(p.studentId(),
                 skills.getOrDefault(p.studentId(), Map.of()), List.copyOf(p.getRolePreferences()))).toList();

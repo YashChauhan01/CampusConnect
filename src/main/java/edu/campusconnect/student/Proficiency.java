@@ -15,4 +15,14 @@ public enum Proficiency {
     public int weight() {
         return weight;
     }
+
+    /** The lower of two levels; used so a failed verification can only lower, never raise, a self-assessment. */
+    public static Proficiency lower(Proficiency a, Proficiency b) {
+        return a.weight <= b.weight ? a : b;
+    }
+
+    /** One level down, bottoming out at {@link #BEGINNER}. */
+    public Proficiency oneLevelDown() {
+        return this == ADVANCED ? INTERMEDIATE : BEGINNER;
+    }
 }

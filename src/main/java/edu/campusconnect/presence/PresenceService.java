@@ -35,7 +35,7 @@ public class PresenceService {
         public enum Kind {CHECKED_IN, CHECKED_OUT, EXPIRED}
     }
 
-    public record SubjectLevel(String name, Proficiency proficiency) {}
+    public record SubjectLevel(String name, Proficiency proficiency, boolean verified) {}
 
     public record PresenceView(UUID studentId, String name, Long zoneId, String zone, Presence.Status status,
                                String requirements, List<String> seeking, List<SubjectLevel> subjects,
@@ -148,9 +148,10 @@ public class PresenceService {
             List<String> seeking = p.getSeekingSubjectIds().stream().map(names::get)
                     .filter(java.util.Objects::nonNull).sorted().toList();
             List<SubjectLevel> levels = subjects.stream()
-                    .sorted(Comparator.comparing((StudentSubject s) -> s.getProficiency().weight()).reversed()
+                    .sorted(Comparator.comparing((StudentSubject s) -> s.effectiveLevel().weight()).reversed()
                             .thenComparing(s -> s.getSubject().getName()))
-                    .map(s -> new SubjectLevel(s.getSubject().getName(), s.getProficiency())).toList();
+                    .map(s -> new SubjectLevel(s.getSubject().getName(), s.effectiveLevel(),
+                            s.getVerifiedLevel() != null)).toList();
             return new PresenceView(p.getStudentId(), p.getStudent().getFullName(), p.getZone().getId(),
                     p.getZone().getName(), p.getStatus(), p.getRequirements(), seeking, levels, p.getExpiresAt());
         }).toList();

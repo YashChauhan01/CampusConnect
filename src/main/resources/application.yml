@@ -60,6 +60,13 @@ app:
     from: ${MAIL_FROM:noreply@campusconnect.local}
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
+  # Optional AI skill verification. Any OpenAI-compatible /chat/completions endpoint works (hosted, or local Ollama).
+  ai:
+    enabled: ${AI_ENABLED:false}
+    base-url: ${AI_BASE_URL:http://localhost:11434/v1}
+    api-key: ${AI_API_KEY:}
+    model: ${AI_MODEL:llama3.1}
+    timeout: ${AI_TIMEOUT:60s}
 
 springdoc:
   api-docs:

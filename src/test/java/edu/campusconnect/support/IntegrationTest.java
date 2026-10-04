@@ -43,6 +43,12 @@ public abstract class IntegrationTest {
         RecordingMailer recordingMailer() {
             return new RecordingMailer();
         }
+
+        @Bean
+        @org.springframework.context.annotation.Primary
+        StubAssessor stubAssessor() {
+            return new StubAssessor();
+        }
     }
 
     private static EmbeddedPostgres startPostgres() {
@@ -76,6 +82,8 @@ public abstract class IntegrationTest {
     protected JdbcTemplate jdbc;
     @Autowired
     protected RecordingMailer mailer;
+    @Autowired
+    protected StubAssessor assessor;
 
     @BeforeEach
     void resetDatabase() {
@@ -87,6 +95,7 @@ public abstract class IntegrationTest {
         jdbc.update("UPDATE campus_zones SET enabled = TRUE, name = 'Cafeteria', x_m = 200, y_m = -60 WHERE id = 3");
         jdbc.update("UPDATE campus_zones SET enabled = TRUE, name = 'Study Hall', x_m = 40, y_m = -30 WHERE id = 4");
         mailer.clear();
+        assessor.reset();
     }
 
     protected MockHttpServletRequestBuilder postJson(String path, Object body) throws Exception {

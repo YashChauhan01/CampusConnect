@@ -46,15 +46,33 @@ public class StudentSubject {
     @JoinColumn(name = "subject_id")
     private Subject subject;
 
-    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Proficiency proficiency;
+
+    /** Level confirmed by an assessment; never above {@link #proficiency}. Cleared when the student changes the claim. */
+    @Setter
+    @Enumerated(EnumType.STRING)
+    @Column(name = "verified_level", length = 20)
+    private Proficiency verifiedLevel;
 
     public StudentSubject(UUID studentId, Subject subject, Proficiency proficiency) {
         this.id = new Id(studentId, subject.getId());
         this.subject = subject;
         this.proficiency = proficiency;
+    }
+
+    /** Re-states the claim; an old verification no longer applies to a different claim. */
+    public void claim(Proficiency level) {
+        if (level != proficiency) {
+            proficiency = level;
+            verifiedLevel = null;
+        }
+    }
+
+    /** The level the platform trusts: the claim, capped by any verification result. */
+    public Proficiency effectiveLevel() {
+        return verifiedLevel == null ? proficiency : Proficiency.lower(proficiency, verifiedLevel);
     }
 
     public UUID studentId() {

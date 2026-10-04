@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ProfileService {
 
-    public record Item(Long id, String name, Proficiency proficiency) {}
+    public record Item(Long id, String name, Proficiency proficiency, Proficiency verifiedLevel) {}
 
     public record Profile(UUID id, String fullName, String email, String bio, boolean admin, List<Item> skills,
                           List<Item> subjects) {}
@@ -37,9 +37,11 @@ public class ProfileService {
         return new Profile(student.getId(), student.getFullName(), student.getEmail(), student.getBio(),
                 student.isAdmin(),
                 studentSkills.findByStudent(student.getId()).stream()
-                        .map(x -> new Item(x.getSkill().getId(), x.getSkill().getName(), x.getProficiency())).toList(),
+                        .map(x -> new Item(x.getSkill().getId(), x.getSkill().getName(), x.getProficiency(),
+                                x.getVerifiedLevel())).toList(),
                 studentSubjects.findByStudent(student.getId()).stream()
-                        .map(x -> new Item(x.getSubject().getId(), x.getSubject().getName(), x.getProficiency())).toList());
+                        .map(x -> new Item(x.getSubject().getId(), x.getSubject().getName(), x.getProficiency(),
+                                x.getVerifiedLevel())).toList());
     }
 
     @Transactional
@@ -57,7 +59,7 @@ public class ProfileService {
         skills.insertIfAbsent(name);
         Skill skill = skills.findByNameIgnoreCase(name).orElseThrow();
         studentSkills.findById(new StudentSkill.Id(student.getId(), skill.getId()))
-                .ifPresentOrElse(existing -> existing.setProficiency(proficiency),
+                .ifPresentOrElse(existing -> existing.claim(proficiency),
                         () -> studentSkills.save(new StudentSkill(student.getId(), skill, proficiency)));
         return get(student);
     }
@@ -74,7 +76,7 @@ public class ProfileService {
         subjects.insertIfAbsent(name);
         Subject subject = subjects.findByNameIgnoreCase(name).orElseThrow();
         studentSubjects.findById(new StudentSubject.Id(student.getId(), subject.getId()))
-                .ifPresentOrElse(existing -> existing.setProficiency(proficiency),
+                .ifPresentOrElse(existing -> existing.claim(proficiency),
                         () -> studentSubjects.save(new StudentSubject(student.getId(), subject, proficiency)));
         return get(student);
     }
