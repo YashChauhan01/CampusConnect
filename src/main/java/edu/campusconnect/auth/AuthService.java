@@ -120,6 +120,9 @@ public class AuthService {
             throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
                     "Please verify your email address before logging in");
         }
+        if (!student.isAdmin() && props.isAdminEmail(student.getEmail())) {
+            student.setAdmin(true);
+        }
         return issueSession(student.getId(), UUID.randomUUID());
     }
 

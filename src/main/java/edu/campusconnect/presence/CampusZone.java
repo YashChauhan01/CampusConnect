@@ -9,6 +9,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "campus_zones")
@@ -20,16 +21,20 @@ public class CampusZone {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
+    @Setter
     @Column(nullable = false)
     private boolean enabled = true;
 
     /** Planar position in metres; null when the zone has not been placed on the campus map. */
+    @Setter
     @Column(name = "x_m")
     private Double x;
 
+    @Setter
     @Column(name = "y_m")
     private Double y;
 

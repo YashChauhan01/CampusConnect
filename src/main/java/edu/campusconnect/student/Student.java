@@ -36,6 +36,9 @@ public class Student {
     @Column(length = 500)
     private String bio;
 
+    @Column(nullable = false)
+    private boolean admin;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 

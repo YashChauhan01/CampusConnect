@@ -33,4 +33,13 @@ public class CurrentStudent {
                 .filter(Student::isVerified)
                 .orElseThrow(() -> ApiException.unauthorized("Account not available"));
     }
+
+    /** Like {@link #require()} but only for administrators. */
+    public Student requireAdmin() {
+        Student student = require();
+        if (!student.isAdmin()) {
+            throw ApiException.forbidden("Administrator access required");
+        }
+        return student;
+    }
 }

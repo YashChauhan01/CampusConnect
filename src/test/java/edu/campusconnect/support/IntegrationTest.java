@@ -80,6 +80,12 @@ public abstract class IntegrationTest {
     @BeforeEach
     void resetDatabase() {
         jdbc.execute("TRUNCATE TABLE students, skills, subjects, match_rounds RESTART IDENTITY CASCADE");
+        // Zones are seed data (ids 1-4); undo anything tests added, renamed, moved or disabled.
+        jdbc.update("DELETE FROM campus_zones WHERE id > 4");
+        jdbc.update("UPDATE campus_zones SET enabled = TRUE, name = 'Library', x_m = 0, y_m = 0 WHERE id = 1");
+        jdbc.update("UPDATE campus_zones SET enabled = TRUE, name = 'Computer Lab', x_m = 80, y_m = 40 WHERE id = 2");
+        jdbc.update("UPDATE campus_zones SET enabled = TRUE, name = 'Cafeteria', x_m = 200, y_m = -60 WHERE id = 3");
+        jdbc.update("UPDATE campus_zones SET enabled = TRUE, name = 'Study Hall', x_m = 40, y_m = -30 WHERE id = 4");
         mailer.clear();
     }
 

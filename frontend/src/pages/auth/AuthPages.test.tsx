@@ -7,7 +7,7 @@ import { AuthProvider } from '../../auth/AuthContext';
 import { mockApi } from '../../test/mockApi';
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage, VerifyEmailPage } from './AuthPages';
 
-const PROFILE = { id: '1', fullName: 'Asha Rao', email: 'asha@college.edu', bio: null, skills: [], subjects: [] };
+const PROFILE = { id: '1', fullName: 'Asha Rao', email: 'asha@college.edu', bio: null, admin: false, skills: [], subjects: [] };
 
 function renderAt(path: string) {
   return render(

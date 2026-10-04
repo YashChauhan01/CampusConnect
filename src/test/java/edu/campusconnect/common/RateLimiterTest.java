@@ -40,7 +40,7 @@ class RateLimiterTest {
     }
 
     private static AppProperties props(boolean enabled) {
-        return new AppProperties("http://x", "s".repeat(32), false, List.of("college.edu"), 30, 30, 15, 7, 15, 4,
+        return new AppProperties("http://x", "s".repeat(32), false, List.of("college.edu"), List.of(), 30, 30, 15, 7, 15, 4,
                 new AppProperties.Mail("log", "a@b.c"), new AppProperties.RateLimit(enabled));
     }
 

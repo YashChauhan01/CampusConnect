@@ -47,6 +47,8 @@ app:
   secure-cookies: ${SECURE_COOKIES:false}
   # Comma separated list of college email domains that may register.
   approved-domains: ${APPROVED_DOMAINS:college.edu}
+  # Comma separated emails that receive the administrator role (zone management) when they log in.
+  admin-emails: ${ADMIN_EMAILS:}
   verification-minutes: ${VERIFICATION_MINUTES:30}
   reset-minutes: ${RESET_MINUTES:30}
   access-token-minutes: ${ACCESS_TOKEN_MINUTES:15}

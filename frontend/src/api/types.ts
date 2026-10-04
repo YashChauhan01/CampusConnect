@@ -13,6 +13,7 @@ export interface Profile {
   fullName: string;
   email: string;
   bio: string | null;
+  admin: boolean;
   skills: Item[];
   subjects: Item[];
 }
@@ -20,6 +21,22 @@ export interface Profile {
 export interface Zone {
   id: number;
   name: string;
+}
+
+export interface AdminZone {
+  id: number;
+  name: string;
+  enabled: boolean;
+  x: number | null;
+  y: number | null;
+  checkedIn: number;
+}
+
+export interface ZoneInput {
+  name: string;
+  x: number | null;
+  y: number | null;
+  enabled?: boolean;
 }
 
 export type PresenceStatus = 'AVAILABLE' | 'BUSY';

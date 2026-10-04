@@ -12,7 +12,8 @@ public class ProfileService {
 
     public record Item(Long id, String name, Proficiency proficiency) {}
 
-    public record Profile(UUID id, String fullName, String email, String bio, List<Item> skills, List<Item> subjects) {}
+    public record Profile(UUID id, String fullName, String email, String bio, boolean admin, List<Item> skills,
+                          List<Item> subjects) {}
 
     private static final int SUGGESTION_LIMIT = 15;
 
@@ -34,6 +35,7 @@ public class ProfileService {
     @Transactional(readOnly = true)
     public Profile get(Student student) {
         return new Profile(student.getId(), student.getFullName(), student.getEmail(), student.getBio(),
+                student.isAdmin(),
                 studentSkills.findByStudent(student.getId()).stream()
                         .map(x -> new Item(x.getSkill().getId(), x.getSkill().getName(), x.getProficiency())).toList(),
                 studentSubjects.findByStudent(student.getId()).stream()

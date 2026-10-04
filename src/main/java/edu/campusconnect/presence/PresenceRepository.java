@@ -17,4 +17,7 @@ public interface PresenceRepository extends JpaRepository<Presence, UUID> {
 
     @Query("select p.studentId from Presence p where p.expiresAt <= :now")
     List<UUID> findExpiredIds(@Param("now") Instant now);
+
+    @Query("select p.zone.id, count(p) from Presence p where p.expiresAt > :now group by p.zone.id")
+    List<Object[]> countActiveByZone(@Param("now") Instant now);
 }

@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class AppPropertiesTest {
 
     private static AppProperties withDomains(List<String> domains) {
-        return new AppProperties("http://x", "s".repeat(32), false, domains, 30, 30, 15, 7, 15, 4,
+        return new AppProperties("http://x", "s".repeat(32), false, domains, List.of(), 30, 30, 15, 7, 15, 4,
                 new AppProperties.Mail("log", "a@b.c"), new AppProperties.RateLimit(true));
     }
 

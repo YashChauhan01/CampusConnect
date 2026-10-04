@@ -20,6 +20,8 @@ public record AppProperties(
         @NotBlank @Size(min = 32, message = "must be at least 32 characters") String jwtSecret,
         boolean secureCookies,
         @NotEmpty List<String> approvedDomains,
+        /** Accounts with these emails get the administrator role at login. */
+        @DefaultValue List<String> adminEmails,
         @DefaultValue("30") @Min(1) int verificationMinutes,
         @DefaultValue("30") @Min(1) int resetMinutes,
         @DefaultValue("15") @Min(1) int accessTokenMinutes,
@@ -30,8 +32,17 @@ public record AppProperties(
         @Valid @DefaultValue RateLimit rateLimit) {
 
     public AppProperties {
-        approvedDomains = approvedDomains == null ? List.of()
-                : approvedDomains.stream().map(d -> d.trim().toLowerCase(Locale.ROOT)).filter(d -> !d.isEmpty()).toList();
+        approvedDomains = normalized(approvedDomains);
+        adminEmails = normalized(adminEmails);
+    }
+
+    private static List<String> normalized(List<String> values) {
+        return values == null ? List.of()
+                : values.stream().map(d -> d.trim().toLowerCase(Locale.ROOT)).filter(d -> !d.isEmpty()).toList();
+    }
+
+    public boolean isAdminEmail(String email) {
+        return adminEmails.contains(email.toLowerCase(Locale.ROOT));
     }
 
     public boolean isApprovedDomain(String domain) {

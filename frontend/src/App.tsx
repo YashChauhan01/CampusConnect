@@ -3,6 +3,7 @@ import { useAuth } from './auth/AuthContext';
 import { Layout } from './components/Layout';
 import { Spinner } from './components/ui';
 import { RealtimeProvider } from './realtime/RealtimeContext';
+import { AdminZonesPage } from './pages/AdminZonesPage';
 import { CampusPage } from './pages/CampusPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { HackathonDetailPage } from './pages/HackathonDetailPage';
@@ -58,6 +59,7 @@ export function App() {
           <Route path="/hackathons/new" element={<NewHackathonPage />} />
           <Route path="/hackathons/:id" element={<HackathonDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin/zones" element={<AdminZonesPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

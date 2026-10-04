@@ -2,6 +2,7 @@ app:
   frontend-url: http://localhost:5173
   jwt-secret: test-secret-test-secret-test-secret-1234567890
   approved-domains: college.edu, uni.ac.in
+  admin-emails: boss@college.edu
   mail:
     mode: test
   rate-limit:

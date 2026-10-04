@@ -1,5 +1,6 @@
 # Local development profile (SPRING_PROFILES_ACTIVE=dev). Never use these values in production.
 app:
+  admin-emails: asha@college.edu
   jwt-secret: ${JWT_SECRET:dev-only-secret-change-before-deployment-64-characters-minimum-12345}
   mail:
     mode: ${MAIL_MODE:log}

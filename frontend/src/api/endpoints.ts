@@ -1,5 +1,6 @@
 import { api, authApi } from './client';
 import type {
+  AdminZone,
   CheckInRequest,
   CreateHackathonRequest,
   HackathonDetail,
@@ -12,6 +13,7 @@ import type {
   Suggestion,
   TeamsView,
   Zone,
+  ZoneInput,
 } from './types';
 
 interface Message {
@@ -81,4 +83,10 @@ export const notifications = {
   inbox: () => api.get<Inbox>('/notifications'),
   markRead: (id: string) => api.post<void>(`/notifications/${id}/read`),
   markAllRead: () => api.post<void>('/notifications/read-all'),
+};
+
+export const admin = {
+  zones: () => api.get<AdminZone[]>('/admin/zones'),
+  createZone: (zone: ZoneInput) => api.post<AdminZone>('/admin/zones', zone),
+  updateZone: (id: number, zone: ZoneInput) => api.put<AdminZone>(`/admin/zones/${id}`, zone),
 };

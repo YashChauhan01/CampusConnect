@@ -18,6 +18,7 @@ const profile: Profile = {
   fullName: 'Asha Rao',
   email: 'asha@college.edu',
   bio: null,
+  admin: false,
   skills: [],
   subjects: [{ id: 7, name: 'DBMS', proficiency: 'BEGINNER' }],
 };

@@ -50,6 +50,7 @@ export function Layout() {
           <NavLink to="/matches">Matches</NavLink>
           <NavLink to="/hackathons">Hackathons</NavLink>
           <NavLink to="/profile">Profile</NavLink>
+          {profile?.admin && <NavLink to="/admin/zones">Zones</NavLink>}
         </nav>
         <div className="topbar-right">
           <NotificationBell />
