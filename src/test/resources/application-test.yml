@@ -7,6 +7,8 @@ app:
   rate-limit:
     enabled: false
   presence-minutes: 15
+  matching:
+    scheduler-enabled: false
   bcrypt-strength: 4
 
 spring:

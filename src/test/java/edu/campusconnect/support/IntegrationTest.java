@@ -1,5 +1,6 @@
 package edu.campusconnect.support;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -78,7 +79,7 @@ public abstract class IntegrationTest {
 
     @BeforeEach
     void resetDatabase() {
-        jdbc.execute("TRUNCATE TABLE students, skills, subjects RESTART IDENTITY CASCADE");
+        jdbc.execute("TRUNCATE TABLE students, skills, subjects, match_rounds RESTART IDENTITY CASCADE");
         mailer.clear();
     }
 
@@ -100,6 +101,36 @@ public abstract class IntegrationTest {
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         JsonNode node = json.readTree(body);
         return node.get("accessToken").asText();
+    }
+
+    protected long zoneId(String token, String name) throws Exception {
+        String body = mvc.perform(get("/api/v1/presence/zones").header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        for (JsonNode zone : json.readTree(body)) {
+            if (zone.get("name").asText().equals(name)) {
+                return zone.get("id").asLong();
+            }
+        }
+        throw new AssertionError("zone not found: " + name);
+    }
+
+    /** Adds (or updates) a profile subject and returns its id. */
+    protected long addSubject(String token, String name, String level) throws Exception {
+        String body = mvc.perform(postJson("/api/v1/students/me/subjects", java.util.Map.of("name", name, "proficiency", level))
+                .header("Authorization", bearer(token))).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        for (JsonNode s : json.readTree(body).get("subjects")) {
+            if (s.get("name").asText().equals(name)) {
+                return s.get("id").asLong();
+            }
+        }
+        throw new AssertionError("subject not found: " + name);
+    }
+
+    protected void checkIn(String token, long zone, String presenceStatus, java.util.Map<String, Object> extra) throws Exception {
+        var body = new java.util.HashMap<String, Object>(java.util.Map.of("zoneId", zone, "status", presenceStatus));
+        body.putAll(extra);
+        mvc.perform(postJson("/api/v1/presence/check-in", body).header("Authorization", bearer(token)))
+                .andExpect(status().isOk());
     }
 
     protected static String bearer(String accessToken) {

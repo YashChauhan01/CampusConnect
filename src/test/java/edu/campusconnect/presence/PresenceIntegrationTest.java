@@ -28,37 +28,8 @@ class PresenceIntegrationTest extends IntegrationTest {
     void setUp() throws Exception {
         asha = signUp("asha@college.edu", "Asha Rao");
         ravi = signUp("ravi@college.edu", "Ravi Patel");
-        libraryId = zoneId("Library");
-        labId = zoneId("Computer Lab");
-    }
-
-    private long zoneId(String name) throws Exception {
-        String body = mvc.perform(get("/api/v1/presence/zones").header("Authorization", bearer(asha)))
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        for (JsonNode zone : json.readTree(body)) {
-            if (zone.get("name").asText().equals(name)) {
-                return zone.get("id").asLong();
-            }
-        }
-        throw new AssertionError("zone not found: " + name);
-    }
-
-    private long addSubject(String token, String name, String level) throws Exception {
-        String body = mvc.perform(postJson("/api/v1/students/me/subjects", Map.of("name", name, "proficiency", level))
-                .header("Authorization", bearer(token))).andReturn().getResponse().getContentAsString();
-        for (JsonNode s : json.readTree(body).get("subjects")) {
-            if (s.get("name").asText().equals(name)) {
-                return s.get("id").asLong();
-            }
-        }
-        throw new AssertionError();
-    }
-
-    private void checkIn(String token, long zone, String status, Map<String, Object> extra) throws Exception {
-        var body = new java.util.HashMap<String, Object>(Map.of("zoneId", zone, "status", status));
-        body.putAll(extra);
-        mvc.perform(postJson("/api/v1/presence/check-in", body).header("Authorization", bearer(token)))
-                .andExpect(status().isOk());
+        libraryId = zoneId(asha, "Library");
+        labId = zoneId(asha, "Computer Lab");
     }
 
     @Test
