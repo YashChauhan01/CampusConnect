@@ -8,34 +8,35 @@ services:
     ports: ["127.0.0.1:5432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
     healthcheck:
-      test: ["CMD-SHELL","pg_isready -U campus -d campusconnect"]
+      test: ["CMD-SHELL", "pg_isready -U campus -d campusconnect"]
       interval: 5s
       retries: 15
-  redis:
-    image: redis:7-alpine
-    ports: ["127.0.0.1:6379:6379"]
+
   mailpit:
     image: axllent/mailpit:v1.24
     ports: ["127.0.0.1:8025:8025"]
+
   backend:
     build: .
     environment:
       DB_URL: jdbc:postgresql://db:5432/campusconnect
       DB_USER: campus
       DB_PASSWORD: ${DB_PASSWORD:-campus_dev_only}
-      REDIS_HOST: redis
       SMTP_HOST: mailpit
-      FRONTEND_URL: http://localhost:5173
+      MAIL_MODE: ${MAIL_MODE:-smtp}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       APPROVED_DOMAINS: ${APPROVED_DOMAINS:-college.edu}
+      SECURE_COOKIES: ${SECURE_COOKIES:-false}
       JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-before-deployment-64-characters-minimum-12345}
     ports: ["127.0.0.1:8080:8080"]
     depends_on:
       db: {condition: service_healthy}
-      redis: {condition: service_started}
       mailpit: {condition: service_started}
+
   frontend:
     build: ./frontend
     ports: ["127.0.0.1:5173:5173"]
     depends_on: [backend]
+
 volumes:
   pgdata:
