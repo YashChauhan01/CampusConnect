@@ -16,6 +16,16 @@ services:
     image: axllent/mailpit:v1.24
     ports: ["127.0.0.1:8025:8025"]
 
+  # Optional database browser for development: http://localhost:5050
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@campusconnect.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports: ["127.0.0.1:5050:80"]
+    depends_on:
+      db: {condition: service_healthy}
+
   backend:
     build: .
     environment:
