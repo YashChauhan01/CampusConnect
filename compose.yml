@@ -38,6 +38,8 @@ services:
       APPROVED_DOMAINS: ${APPROVED_DOMAINS:-college.edu}
       SECURE_COOKIES: ${SECURE_COOKIES:-false}
       FORWARD_HEADERS_STRATEGY: native
+      # Set SPRING_PROFILES_ACTIVE=dev to get demo accounts (see README); empty = production behaviour.
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       AI_ENABLED: ${AI_ENABLED:-false}
       AI_BASE_URL: ${AI_BASE_URL:-http://localhost:11434/v1}

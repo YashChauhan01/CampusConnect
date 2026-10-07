@@ -34,6 +34,14 @@ docker compose up --build
 
 Register with an address on an approved domain, open the link in Mailpit, then log in.
 
+**No demo accounts exist in this mode** (they are created only by the `dev` profile), so logging in as `asha@college.edu` fails until you register. To start with the demo accounts instead:
+
+```bash
+SPRING_PROFILES_ACTIVE=dev docker compose up --build   # PowerShell: $env:SPRING_PROFILES_ACTIVE="dev"; docker compose up --build
+```
+
+Login problems usually mean: the email domain is not in `APPROVED_DOMAINS` (default `college.edu`), the email was not verified yet (check Mailpit at http://localhost:8025), or too many attempts (login is rate limited to 8 per 15 minutes per email).
+
 ### Option B – No Docker (embedded PostgreSQL, demo data)
 
 ```bash
