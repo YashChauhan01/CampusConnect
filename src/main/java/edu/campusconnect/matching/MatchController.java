@@ -3,6 +3,7 @@ package edu.campusconnect.matching;
 import edu.campusconnect.security.CurrentStudent;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,10 +17,12 @@ public class MatchController {
 
     private final CurrentStudent current;
     private final MatchService matching;
+    private final MatchGraphService graphs;
 
-    public MatchController(CurrentStudent current, MatchService matching) {
+    public MatchController(CurrentStudent current, MatchService matching, MatchGraphService graphs) {
         this.current = current;
         this.matching = matching;
+        this.graphs = graphs;
     }
 
     /** The student's live proposal or confirmed match; 204 if there is none. */
@@ -60,5 +63,22 @@ public class MatchController {
     @PostMapping("/matches/{id}/complete")
     public MatchService.MatchView complete(@PathVariable UUID id) {
         return matching.complete(current.require().getId(), id);
+    }
+
+    /**
+     * Administrators only: the compatibility graph of everyone who would be in the next round, the optimal and greedy
+     * matchings on it, and a check of the optimality conditions. Nothing is stored or proposed.
+     */
+    @GetMapping("/graph")
+    public MatchGraphService.GraphView graph(@RequestParam(defaultValue = "4") int topK) {
+        current.requireAdmin();
+        return graphs.graph(Math.max(1, Math.min(topK, 20)));
+    }
+
+    /** Administrators only: timings of recent matching rounds. */
+    @GetMapping("/rounds")
+    public List<MatchGraphService.RoundView> rounds() {
+        current.requireAdmin();
+        return graphs.recentRounds();
     }
 }

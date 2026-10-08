@@ -17,6 +17,22 @@ Each round builds the compatibility graph of all available students and pairs th
 
 Over 100 further random pools of 100 students, greedy achieved on average 95.8% of the optimal total weight (worst case 93.0%).
 
+### End-to-end check with 400 generated students (2026-10-08)
+
+The dev profile can generate a synthetic campus (`APP_SEED_FAKE_STUDENTS=400`, see README); `scripts/simulate.py` then
+logs all 400 students in and exercises every flow through the HTTP API. Result: all checks passed (400 logins, profile
+and availability reads, a live matching round, the admin graph with its optimality check, 136 accepts and 34 declines,
+a 200-person hackathon registered, closed, synthesized and published).
+
+The live pool had 343 available students and 24,928 compatible pairs (42% of all pairs, a much denser graph than the
+synthetic benchmark above, because on a single campus almost any two people share some subject). Server-side time for
+graph construction plus the exact blossom solve was **about 200-250 ms in steady state** (graph build about 70 ms, solve
+about 150 ms; first call after start-up 660 ms before the JIT warms up), on a laptop that was also running the
+database, the browser and the build tools. A full HTTP round trip for "find me a partner" (pool load from PostgreSQL,
+solve, persist proposals) was about 0.5 s. The 0.1 s figure in the table above holds for sparser pools (about 40k edges
+at 400 students); on dense real-looking data expect a few hundred milliseconds, still well inside the 20 s round interval.
+Greedy reached 97.8% of the optimal weight here (141.47 vs 144.73).
+
 ## Mode 2 — hackathon team synthesis (Hungarian algorithm vs. random teams)
 
 Five roles (backend, frontend, data/ML, design, product); participants rank up to three roles. Fit is the mean role fit (higher is better), preference is the share of participants who got one of their top-3 roles, and σ is the standard deviation of team strength (lower is more balanced).

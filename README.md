@@ -82,6 +82,17 @@ Everything is environment driven (see [.env.example](.env.example) and `applicat
 without a `JWT_SECRET` of at least 32 characters. Matching behaviour (weights, intervals, cool-downs, pool cap) is
 under `app.matching.*`.
 
+## Demo data and the matching graph
+
+Set `APP_SEED_FAKE_STUDENTS=400` (dev profile) to generate that many verified students with subjects, skills and live
+check-ins (reproducible via `app.seed.random-seed`; every account uses `password-123456`; the list is written to
+`target/seed-accounts.csv`). `python scripts/simulate.py` then drives every flow against the running server and prints
+a latency table. Administrators get a **Match graph** page: each available student is a node (coloured by zone), a line
+is a compatible pair, and green lines are the pairs chosen by the maximum-weight matching. Click a student to see the
+candidates and the score breakdown. The page also compares the optimal matching with a greedy baseline, shows the
+timing of recent rounds, and runs an independent optimality check (no re-pairing of two matched pairs, or swap with an
+unmatched student, may improve the total weight).
+
 ## Administrators and campus zones
 
 Put the administrators' emails in `ADMIN_EMAILS` (comma separated); they receive the role when they next log in and see a

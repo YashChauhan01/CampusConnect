@@ -71,7 +71,7 @@ Organisers can re-run the synthesis as often as they like; the result stays a pr
 ## Operational limits
 
 Blossom matching is cubic in the pool size. Measured on a 12-thread laptop CPU (see EVALUATION.md): about 0.1 s for 400
-simultaneous students, 1.7 s for 800, 22 s for 1,600. The default `app.matching.max-pool-size` is therefore 500. For a
+simultaneous students on a sparse synthetic pool (0.2-0.25 s on a dense 343-student generated campus), 1.7 s for 800, 22 s for 1,600. The default `app.matching.max-pool-size` is therefore 500. For a
 larger campus, partition the pool by zone cluster (proximity already makes cross-campus edges light) and match each
 partition independently.
 

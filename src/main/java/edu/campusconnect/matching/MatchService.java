@@ -105,24 +105,12 @@ public class MatchService {
         Instant now = clock.instant();
         housekeeping(now);
 
-        Set<UUID> busy = new HashSet<>();
-        for (Match m : matches.findAllLive()) {
-            busy.add(m.getStudentA());
-            busy.add(m.getStudentB());
-        }
-        List<Presence> pool = presences.findAvailable(now).stream()
-                .filter(p -> !busy.contains(p.getStudentId()))
-                .limit(props.maxPoolSize())
-                .toList();
+        PoolSnapshot snapshot = poolSnapshot(now);
+        List<Presence> pool = snapshot.pool();
         if (pool.size() < 2) {
             return Optional.empty();
         }
-
-        Set<UUID> poolIds = pool.stream().map(Presence::getStudentId).collect(Collectors.toSet());
-        Set<String> declined = matches.findDeclinedSince(now.minus(props.declineCooldown()), poolIds).stream()
-                .map(m -> pairKey(m.getStudentA(), m.getStudentB()))
-                .collect(Collectors.toSet());
-        BiPredicate<UUID, UUID> excluded = (a, b) -> declined.contains(pairKey(a, b));
+        BiPredicate<UUID, UUID> excluded = snapshot.excluded();
 
         MatchingEngine.Result result = engine.match(loader.load(pool), excluded);
         double durationMs = result.nanos() / 1_000_000.0;
@@ -151,6 +139,28 @@ public class MatchService {
             log.debug("On-demand round throttled");
         }
         return current(studentId);
+    }
+
+    /** Who would take part in a round started now, and which pairs must be kept apart (recent declines). */
+    record PoolSnapshot(List<Presence> pool, BiPredicate<UUID, UUID> excluded) {}
+
+    @Transactional(readOnly = true)
+    PoolSnapshot poolSnapshot(Instant now) {
+        Set<UUID> busy = new HashSet<>();
+        for (Match m : matches.findAllLive()) {
+            busy.add(m.getStudentA());
+            busy.add(m.getStudentB());
+        }
+        List<Presence> pool = presences.findAvailable(now).stream()
+                .filter(p -> !busy.contains(p.getStudentId()))
+                .limit(props.maxPoolSize())
+                .toList();
+        Set<UUID> poolIds = pool.stream().map(Presence::getStudentId).collect(Collectors.toSet());
+        Set<String> declined = poolIds.isEmpty() ? Set.of()
+                : matches.findDeclinedSince(now.minus(props.declineCooldown()), poolIds).stream()
+                        .map(m -> pairKey(m.getStudentA(), m.getStudentB()))
+                        .collect(Collectors.toSet());
+        return new PoolSnapshot(pool, (a, b) -> declined.contains(pairKey(a, b)));
     }
 
     // ---- student actions ------------------------------------------------------------------------------------------

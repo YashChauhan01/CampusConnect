@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Profile("dev")
+@org.springframework.core.annotation.Order(1)
 class DevDataSeeder implements ApplicationRunner {
 
     static final String PASSWORD = "password-123456";

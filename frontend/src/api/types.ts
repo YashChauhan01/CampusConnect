@@ -223,3 +223,55 @@ export interface Assessment {
   verifiedLevel: Proficiency | null;
   feedback: string | null;
 }
+
+export interface GraphNode {
+  index: number;
+  id: string;
+  name: string;
+  zone: string;
+  subjects: { name: string; level: number }[];
+  partner: number | null;
+  degree: number;
+}
+
+export interface GraphEdge {
+  a: number;
+  b: number;
+  score: number;
+  knowledge: number;
+  reciprocity: number;
+  breadth: number;
+  proximity: number;
+  shared: string[];
+  matched: boolean;
+}
+
+export interface GraphSolution {
+  pairs: number;
+  totalWeight: number;
+  millis: number;
+  matchedStudents: number;
+}
+
+export interface GraphView {
+  poolSize: number;
+  edgesTotal: number;
+  edgesShown: number;
+  topK: number;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  optimal: GraphSolution;
+  greedy: GraphSolution;
+  graphBuildMillis: number;
+  check: { pairsChecked: number; exchangesTested: number; improvingExchanges: number; passed: boolean };
+  zones: string[];
+}
+
+export interface RoundSummary {
+  startedAt: string;
+  poolSize: number;
+  edgeCount: number;
+  pairs: number;
+  totalWeight: number;
+  durationMs: number;
+}

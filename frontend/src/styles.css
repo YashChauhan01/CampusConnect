@@ -361,3 +361,31 @@ th { color: var(--muted); font-weight: 600; }
 .assessment li { list-style: decimal; }
 .assessment textarea { width: 100%; margin-top: 0.3rem; }
 .assessment .result { font-size: 1.1rem; }
+
+/* ---- matching graph ---- */
+.graph-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1rem; align-items: start; margin-bottom: 1rem; }
+.graph-card, .detail-card { margin-bottom: 0; }
+.graph-canvas { display: block; width: 100%; background: #fff; border: 1px solid var(--border); border-radius: 10px; cursor: grab; }
+.graph-canvas:active { cursor: grabbing; }
+.graph-controls { gap: 0.5rem 0.75rem; margin-top: 0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem 1.25rem; margin: 0 0 0.75rem; }
+.stat dt { font-size: 0.78rem; color: var(--muted); }
+.stat dd { margin: 0; font-size: 1.3rem; font-weight: 700; }
+.check-pass { color: var(--success); background: var(--success-soft); padding: 0.55rem 0.8rem; border-radius: 8px; margin: 0; }
+.check-fail { color: var(--danger); background: var(--danger-soft); padding: 0.55rem 0.8rem; border-radius: 8px; margin: 0; }
+.segmented { display: inline-flex; border: 1px solid #c9cddd; border-radius: 8px; overflow: hidden; }
+.segmented button { border: 0; background: #fff; padding: 0.45rem 0.8rem; font: inherit; cursor: pointer; }
+.segmented button.on { background: var(--primary); color: #fff; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin: 0.6rem 0 0.25rem; font-size: 0.85rem; }
+.legend li { display: inline-flex; align-items: center; gap: 0.35rem; }
+.swatch { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.swatch.filled { background: #475569; }
+.swatch.hollow { background: #fff; border: 2px solid #475569; }
+.line-sample { width: 22px; height: 3px; background: #15803d; display: inline-block; border-radius: 2px; }
+.list.compact { gap: 0.4rem; }
+.link-row { display: flex; gap: 0.6rem; align-items: center; width: 100%; text-align: left; background: none; border: 1px solid transparent; border-radius: 8px; padding: 0.3rem; font: inherit; cursor: pointer; }
+.link-row:hover, .link-row.on { background: var(--primary-soft); border-color: #d6d9ff; }
+.link-row .score { width: 40px; height: 40px; font-size: 0.85rem; }
+.tag { margin-left: 0.4rem; font-size: 0.7rem; background: var(--success-soft); color: var(--success); padding: 0.05rem 0.4rem; border-radius: 999px; }
+.edge-details { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+@media (max-width: 960px) { .graph-layout { grid-template-columns: 1fr; } }

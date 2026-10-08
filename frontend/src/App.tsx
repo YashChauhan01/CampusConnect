@@ -8,6 +8,7 @@ import { CampusPage } from './pages/CampusPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { HackathonDetailPage } from './pages/HackathonDetailPage';
 import { HackathonsPage, NewHackathonPage } from './pages/HackathonsPage';
+import { MatchGraphPage } from './pages/MatchGraphPage';
 import { MatchesPage } from './pages/MatchesPage';
 import { ProfilePage } from './pages/ProfilePage';
 import {
@@ -60,6 +61,7 @@ export function App() {
           <Route path="/hackathons/:id" element={<HackathonDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/admin/zones" element={<AdminZonesPage />} />
+          <Route path="/admin/graph" element={<MatchGraphPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

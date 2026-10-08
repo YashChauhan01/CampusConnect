@@ -16,7 +16,7 @@ public class MatchingEngine {
 
     public record Pair(Candidate a, Candidate b, CompatibilityScorer.Score score) {}
 
-    /** The graph plus the solutions found on it. */
+    /** The graph plus the solutions found on it. {@code nanos} covers building the graph and solving it. */
     public record Result(int poolSize, int edgeCount, List<Pair> pairs, long totalWeightScaled, long nanos) {
 
         public double totalWeight() {
@@ -24,17 +24,20 @@ public class MatchingEngine {
         }
     }
 
+    /** Edge of the compatibility graph between pool indices {@code i < j}. */
+    public record GraphEdge(int i, int j, CompatibilityScorer.Score score) {
+        public long weight() {
+            return MaxWeightMatching.scale(score.weight());
+        }
+    }
+
+    /** Everything needed to explain a matching round: the graph and both solutions, from a single graph build. */
+    public record Analysis(List<GraphEdge> graph, Result optimal, Result greedy, long buildNanos) {}
+
     private final CompatibilityScorer scorer;
 
     public MatchingEngine(CompatibilityScorer scorer) {
         this.scorer = scorer;
-    }
-
-    /** Edge of the compatibility graph between pool indices {@code i < j}. */
-    private record ScoredEdge(int i, int j, CompatibilityScorer.Score score) {
-        long weight() {
-            return MaxWeightMatching.scale(score.weight());
-        }
     }
 
     /**
@@ -43,24 +46,8 @@ public class MatchingEngine {
      */
     public Result match(List<Candidate> pool, BiPredicate<UUID, UUID> excluded) {
         long start = System.nanoTime();
-        List<ScoredEdge> graph = buildGraph(pool, excluded);
-
-        List<Edge> edges = new ArrayList<>(graph.size());
-        for (ScoredEdge e : graph) {
-            edges.add(new Edge(e.i(), e.j(), e.weight()));
-        }
-        int[] mate = MaxWeightMatching.solve(pool.size(), edges);
-
-        List<Pair> pairs = new ArrayList<>();
-        long total = 0;
-        for (ScoredEdge e : graph) {
-            if (mate[e.i()] == e.j()) {
-                pairs.add(new Pair(pool.get(e.i()), pool.get(e.j()), e.score()));
-                total += e.weight();
-            }
-        }
-        pairs.sort(Comparator.comparingDouble((Pair p) -> p.score().weight()).reversed());
-        return new Result(pool.size(), graph.size(), pairs, total, System.nanoTime() - start);
+        List<GraphEdge> graph = buildGraph(pool, excluded);
+        return solveOptimal(pool, graph, System.nanoTime() - start);
     }
 
     /**
@@ -69,12 +56,46 @@ public class MatchingEngine {
      */
     public Result greedy(List<Candidate> pool, BiPredicate<UUID, UUID> excluded) {
         long start = System.nanoTime();
-        List<ScoredEdge> graph = new ArrayList<>(buildGraph(pool, excluded));
-        graph.sort(Comparator.comparingLong(ScoredEdge::weight).reversed());
+        List<GraphEdge> graph = buildGraph(pool, excluded);
+        return solveGreedy(pool, graph, System.nanoTime() - start);
+    }
+
+    /** Builds the graph once and solves it with both the exact algorithm and the greedy baseline. */
+    public Analysis analyze(List<Candidate> pool, BiPredicate<UUID, UUID> excluded) {
+        long start = System.nanoTime();
+        List<GraphEdge> graph = buildGraph(pool, excluded);
+        long buildNanos = System.nanoTime() - start;
+        return new Analysis(graph, solveOptimal(pool, graph, buildNanos), solveGreedy(pool, graph, buildNanos), buildNanos);
+    }
+
+    private Result solveOptimal(List<Candidate> pool, List<GraphEdge> graph, long buildNanos) {
+        long start = System.nanoTime();
+        List<Edge> edges = new ArrayList<>(graph.size());
+        for (GraphEdge e : graph) {
+            edges.add(new Edge(e.i(), e.j(), e.weight()));
+        }
+        int[] mate = MaxWeightMatching.solve(pool.size(), edges);
+
+        List<Pair> pairs = new ArrayList<>();
+        long total = 0;
+        for (GraphEdge e : graph) {
+            if (mate[e.i()] == e.j()) {
+                pairs.add(new Pair(pool.get(e.i()), pool.get(e.j()), e.score()));
+                total += e.weight();
+            }
+        }
+        pairs.sort(Comparator.comparingDouble((Pair p) -> p.score().weight()).reversed());
+        return new Result(pool.size(), graph.size(), pairs, total, buildNanos + (System.nanoTime() - start));
+    }
+
+    private Result solveGreedy(List<Candidate> pool, List<GraphEdge> graph, long buildNanos) {
+        long start = System.nanoTime();
+        List<GraphEdge> sorted = new ArrayList<>(graph);
+        sorted.sort(Comparator.comparingLong(GraphEdge::weight).reversed());
         boolean[] taken = new boolean[pool.size()];
         List<Pair> pairs = new ArrayList<>();
         long total = 0;
-        for (ScoredEdge e : graph) {
+        for (GraphEdge e : sorted) {
             if (!taken[e.i()] && !taken[e.j()]) {
                 taken[e.i()] = true;
                 taken[e.j()] = true;
@@ -82,11 +103,11 @@ public class MatchingEngine {
                 total += e.weight();
             }
         }
-        return new Result(pool.size(), graph.size(), pairs, total, System.nanoTime() - start);
+        return new Result(pool.size(), graph.size(), pairs, total, buildNanos + (System.nanoTime() - start));
     }
 
-    private List<ScoredEdge> buildGraph(List<Candidate> pool, BiPredicate<UUID, UUID> excluded) {
-        List<ScoredEdge> graph = new ArrayList<>();
+    private List<GraphEdge> buildGraph(List<Candidate> pool, BiPredicate<UUID, UUID> excluded) {
+        List<GraphEdge> graph = new ArrayList<>();
         for (int i = 0; i < pool.size(); i++) {
             for (int j = i + 1; j < pool.size(); j++) {
                 Candidate a = pool.get(i);
@@ -96,7 +117,7 @@ public class MatchingEngine {
                 }
                 int ii = i;
                 int jj = j;
-                scorer.edge(a, b).ifPresent(score -> graph.add(new ScoredEdge(ii, jj, score)));
+                scorer.edge(a, b).ifPresent(score -> graph.add(new GraphEdge(ii, jj, score)));
             }
         }
         return graph;

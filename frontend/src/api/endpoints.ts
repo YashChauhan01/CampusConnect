@@ -5,6 +5,7 @@ import type {
   AssessmentStatus,
   CheckInRequest,
   CreateHackathonRequest,
+  GraphView,
   HackathonDetail,
   HackathonSummary,
   Inbox,
@@ -12,6 +13,7 @@ import type {
   PresenceView,
   Profile,
   Proficiency,
+  RoundSummary,
   Suggestion,
   TeamsView,
   Zone,
@@ -97,4 +99,9 @@ export const assessments = {
   status: () => api.get<AssessmentStatus>('/assessments/status'),
   start: (kind: 'SKILL' | 'SUBJECT', itemId: number) => api.post<Assessment>('/assessments', { kind, itemId }),
   submit: (id: string, answers: string[]) => api.post<Assessment>(`/assessments/${id}/submit`, { answers }),
+};
+
+export const matchGraph = {
+  graph: (topK = 4) => api.get<GraphView>(`/matching/graph?topK=${topK}`),
+  rounds: () => api.get<RoundSummary[]>('/matching/rounds'),
 };
