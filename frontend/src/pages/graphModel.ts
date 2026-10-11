@@ -16,11 +16,16 @@ export interface Position {
 export const NO_FILTER: Filter = { zone: '', subject: '', matchedOnly: false };
 
 /** Categorical colours, one per campus zone (colour-blind friendly order). */
-const PALETTE = ['#4f46e5', '#0891b2', '#d97706', '#be185d', '#15803d', '#7c3aed', '#64748b', '#b91c1c'];
+/**
+ * Theme colour slots for zones, in fixed order: blue, orange, violet, yellow, magenta. The green slots are left out
+ * because green marks matched pairs; the order is validated for colour-vision deficiencies in both themes.
+ */
+const ZONE_SLOTS = ['--role-1', '--role-2', '--role-7', '--role-4', '--role-5'];
 
+/** The CSS custom property holding a zone's colour; zones beyond the fifth share a neutral grey rather than reuse a hue. */
 export function zoneColor(zone: string, zones: string[]): string {
-  const index = zones.indexOf(zone);
-  return PALETTE[(index < 0 ? 0 : index) % PALETTE.length];
+  const index = Math.max(0, zones.indexOf(zone));
+  return index < ZONE_SLOTS.length ? ZONE_SLOTS[index] : '--graph-edge';
 }
 
 export function edgeKey(a: number, b: number): string {

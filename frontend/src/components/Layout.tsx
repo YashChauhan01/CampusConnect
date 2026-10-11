@@ -1,6 +1,7 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useRealtime } from '../realtime/RealtimeContext';
+import { ThemeToggle } from '../theme';
 import { NotificationBell } from './NotificationBell';
 
 function Toasts() {
@@ -34,6 +35,7 @@ function Toasts() {
 export function Layout() {
   const { profile, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <>
@@ -54,6 +56,7 @@ export function Layout() {
           {profile?.admin && <NavLink to="/admin/zones">Zones</NavLink>}
         </nav>
         <div className="topbar-right">
+          <ThemeToggle />
           <NotificationBell />
           <span className="who" title={profile?.email}>
             {profile?.fullName}
@@ -71,7 +74,10 @@ export function Layout() {
         </div>
       </header>
       <main>
-        <Outlet />
+        {/* Keyed by path so every navigation replays the entrance animation. */}
+        <div className="page" key={location.pathname}>
+          <Outlet />
+        </div>
       </main>
       <Toasts />
     </>

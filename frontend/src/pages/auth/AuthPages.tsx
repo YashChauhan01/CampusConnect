@@ -5,10 +5,14 @@ import { auth } from '../../api/endpoints';
 import { useAuth } from '../../auth/AuthContext';
 import { Alert, Field } from '../../components/ui';
 import { messageOf, useAction } from '../../hooks';
+import { ThemeToggle } from '../../theme';
 
 function AuthShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   return (
     <div className="auth-page">
+      <div className="auth-theme">
+        <ThemeToggle />
+      </div>
       <div className="auth-card">
         <Link to="/login" className="brand">
           <span className="logo" aria-hidden="true" />

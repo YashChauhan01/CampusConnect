@@ -5,6 +5,7 @@ import type { GraphEdge, GraphView } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { Alert, EmptyState, PageHeader, ScoreBadge, ScoreBreakdown, Spinner } from '../components/ui';
 import { useLoad } from '../hooks';
+import { cssVar, useTheme } from '../theme';
 import {
   NO_FILTER,
   allSubjects,
@@ -48,6 +49,7 @@ function GraphCanvas({ view, positions, filter, mode, selected, onSelect }: Canv
   const [hover, setHover] = useState<number | null>(null);
   const drag = useRef<{ x: number; y: number; moved: number } | null>(null);
   const visible = useMemo(() => applyFilter(view, filter), [view, filter]);
+  const { theme } = useTheme();
 
   const toGraph = useCallback(
     (clientX: number, clientY: number) => {
@@ -70,6 +72,13 @@ function GraphCanvas({ view, positions, filter, mode, selected, onSelect }: Canv
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     ctx.translate(transform.x, transform.y);
     ctx.scale(transform.k, transform.k);
+    const colors = {
+      matched: cssVar('--graph-matched'),
+      focusEdge: cssVar('--graph-focus-edge'),
+      edge: cssVar('--graph-edge'),
+      hollow: cssVar('--graph-node-hollow'),
+      ring: cssVar('--graph-focus-ring'),
+    };
 
     const focus = selected ?? hover;
     for (const e of visible.edges) {
@@ -81,15 +90,15 @@ function GraphCanvas({ view, positions, filter, mode, selected, onSelect }: Canv
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(b.x, b.y);
       if (e.matched) {
-        ctx.strokeStyle = '#15803d';
+        ctx.strokeStyle = colors.matched;
         ctx.globalAlpha = 1;
         ctx.lineWidth = 3.2 / Math.sqrt(transform.k);
       } else if (touchesFocus) {
-        ctx.strokeStyle = '#4f46e5';
+        ctx.strokeStyle = colors.focusEdge;
         ctx.globalAlpha = 0.9;
         ctx.lineWidth = 1.8 / Math.sqrt(transform.k);
       } else {
-        ctx.strokeStyle = '#64748b';
+        ctx.strokeStyle = colors.edge;
         ctx.globalAlpha = mode === 'graph' ? 0.22 : 0.05;
         ctx.lineWidth = (0.5 + e.score / 100) / Math.sqrt(transform.k);
       }
@@ -100,14 +109,14 @@ function GraphCanvas({ view, positions, filter, mode, selected, onSelect }: Canv
       if (!visible.nodes.has(n.index)) continue;
       const p = positions[n.index];
       if (!p) continue;
-      const color = zoneColor(n.zone, view.zones);
+      const color = cssVar(zoneColor(n.zone, view.zones));
       ctx.beginPath();
       ctx.arc(p.x, p.y, NODE_RADIUS / Math.sqrt(transform.k), 0, Math.PI * 2);
       if (n.partner !== null) {
         ctx.fillStyle = color;
         ctx.fill();
       } else {
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = colors.hollow;
         ctx.fill();
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.6 / Math.sqrt(transform.k);
@@ -116,12 +125,12 @@ function GraphCanvas({ view, positions, filter, mode, selected, onSelect }: Canv
       if (n.index === selected || n.index === hover) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, (NODE_RADIUS + 4) / Math.sqrt(transform.k), 0, Math.PI * 2);
-        ctx.strokeStyle = '#111827';
+        ctx.strokeStyle = colors.ring;
         ctx.lineWidth = 2 / Math.sqrt(transform.k);
         ctx.stroke();
       }
     }
-  }, [view, positions, visible, mode, selected, hover, transform]);
+  }, [view, positions, visible, mode, selected, hover, transform, theme]);
 
   useEffect(() => {
     const el = canvas.current;
@@ -344,7 +353,7 @@ export function MatchGraphPage() {
               <ul className="legend" aria-label="Legend">
                 {view.zones.map((z) => (
                   <li key={z}>
-                    <span className="swatch" style={{ background: zoneColor(z, view.zones) }} /> {z}
+                    <span className="swatch" style={{ background: `var(${zoneColor(z, view.zones)})` }} /> {z}
                   </li>
                 ))}
                 <li>

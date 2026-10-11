@@ -12,7 +12,7 @@ export function Alert({ kind = 'error', children }: { kind?: 'error' | 'success'
 
 export function Spinner({ label = 'Loading…' }: { label?: string }) {
   return (
-    <p className="muted" role="status">
+    <p className="loading" role="status">
       {label}
     </p>
   );

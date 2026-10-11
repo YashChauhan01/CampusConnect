@@ -5,14 +5,14 @@ import type { AnalysisMember, SynthesisMethod, TeamAnalysis } from '../api/types
 import { Alert, PageHeader, ScoreBadge, Spinner } from '../components/ui';
 import { useLoad } from '../hooks';
 
-/** Categorical role colours in fixed order (validated for colour-vision deficiencies); chips always carry the name. */
-const ROLE_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
-const roleColor = (index: number) => ROLE_COLORS[index % ROLE_COLORS.length];
+/**
+ * Categorical role colours in fixed order, defined per theme in styles.css (--role-1..8, validated for colour-vision
+ * deficiencies on both surfaces); chips always carry the name too.
+ */
+const roleColor = (index: number) => `var(--role-${(index % 8) + 1})`;
 /** Ordinal ramp for 1st, 2nd, 3rd choice, then neutral grey for an unranked role. */
-const RANK_COLORS = ['#184f95', '#3987e5', '#86b6ef', '#cbd5e1'];
-const RANK_TEXT = ['#ffffff', '#ffffff', '#1b1e2b', '#1b1e2b'];
-const HUNGARIAN_COLOR = '#2a78d6';
-const RANDOM_COLOR = '#94a3b8';
+const RANK_COLORS = ['var(--rank-1)', 'var(--rank-2)', 'var(--rank-3)', 'var(--rank-none)'];
+const RANK_TEXT = ['var(--rank-1-text)', 'var(--rank-2-text)', 'var(--rank-3-text)', 'var(--text)'];
 const RANK_LABELS = ['1st choice', '2nd choice', '3rd choice', 'Not ranked'];
 const LEVELS = ['', 'Beginner', 'Intermediate', 'Advanced'];
 
@@ -57,7 +57,7 @@ function BalanceChart({ hungarian, random }: { hungarian: SynthesisMethod; rando
     <figure className="chart">
       <ul className="legend" aria-label="Legend">
         <li>
-          <span className="line-sample" style={{ background: HUNGARIAN_COLOR }} /> Hungarian synthesis
+          <span className="line-sample main" /> Hungarian synthesis
         </li>
         <li>
           <span className="line-sample dashed" /> Random teams (mean of runs)
@@ -87,13 +87,13 @@ function BalanceChart({ hungarian, random }: { hungarian: SynthesisMethod; rando
           <text x={(CHART_W + PAD.left) / 2} y={CHART_H - 6} textAnchor="middle" className="axis-label">
             Teams, weakest → strongest ({n})
           </text>
-          <path d={path(random.teamStrengths)} fill="none" stroke={RANDOM_COLOR} strokeWidth={2} strokeDasharray="5 4" />
-          <path d={path(hungarian.teamStrengths)} fill="none" stroke={HUNGARIAN_COLOR} strokeWidth={2} />
+          <path d={path(random.teamStrengths)} className="series baseline" />
+          <path d={path(hungarian.teamStrengths)} className="series main" />
           {hover !== null && (
             <g>
               <line x1={x(hover)} x2={x(hover)} y1={PAD.top} y2={CHART_H - PAD.bottom} className="crosshair" />
-              <circle cx={x(hover)} cy={y(random.teamStrengths[hover])} r={4.5} fill={RANDOM_COLOR} stroke="#fff" strokeWidth={2} />
-              <circle cx={x(hover)} cy={y(hungarian.teamStrengths[hover])} r={4.5} fill={HUNGARIAN_COLOR} stroke="#fff" strokeWidth={2} />
+              <circle cx={x(hover)} cy={y(random.teamStrengths[hover])} r={4.5} className="dot-baseline" strokeWidth={2} />
+              <circle cx={x(hover)} cy={y(hungarian.teamStrengths[hover])} r={4.5} className="dot-main" strokeWidth={2} />
             </g>
           )}
         </svg>
@@ -183,7 +183,7 @@ function FlowTable({ analysis }: { analysis: TeamAnalysis }) {
                   <td
                     key={j}
                     className={i === j ? 'diag' : ''}
-                    style={{ background: count ? `rgba(42, 120, 214, ${0.08 + t * 0.72})` : undefined, color: t > 0.55 ? '#fff' : undefined }}
+                    style={{ background: count ? `rgb(var(--heat) / ${(0.1 + t * 0.75).toFixed(2)})` : undefined, color: t > 0.55 ? '#fff' : undefined }}
                     title={`${count} participants`}
                   >
                     {count || ''}

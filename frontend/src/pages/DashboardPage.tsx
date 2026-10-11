@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { hackathons, matching, presence } from '../api/endpoints';
 import { useAuth } from '../auth/AuthContext';
-import { PageHeader, Pill, ScoreBadge } from '../components/ui';
+import { Pill, ScoreBadge } from '../components/ui';
 import { useCountdown, useLoad } from '../hooks';
 import { useRealtime } from '../realtime/RealtimeContext';
 
@@ -17,10 +17,29 @@ export function DashboardPage() {
   const profileEmpty = profile.subjects.length === 0 && profile.skills.length === 0;
   const checkedIn = Boolean(mine.data) && remaining !== null;
   const open = events.data?.filter((h) => h.status === 'OPEN') ?? [];
+  const hour = new Date().getHours();
+  const greeting = hour < 5 ? 'Up late' : hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
     <>
-      <PageHeader title={`Hi, ${profile.fullName.split(' ')[0]}`} subtitle="Here is what is happening for you right now." />
+      <section className="hero">
+        <h1>
+          {greeting}, {profile.fullName.split(' ')[0]} 👋
+        </h1>
+        <p>Here is what is happening for you right now. Find a study partner nearby or jump into a hackathon team.</p>
+        <div className="hero-chips">
+          <Link className="hero-chip" to="/campus">
+            📍 {checkedIn ? `At ${mine.data?.zone}` : 'Not checked in'}
+          </Link>
+          <Link className="hero-chip" to="/matches">
+            🤝 {match.data ? (match.data.status === 'ACCEPTED' ? 'Partner confirmed' : 'Match waiting') : 'No match yet'}
+          </Link>
+          <Link className="hero-chip" to="/hackathons">
+            🚀 {open.length} open hackathon{open.length === 1 ? '' : 's'}
+          </Link>
+          {inbox.unread > 0 && <span className="hero-chip">🔔 {inbox.unread} unread</span>}
+        </div>
+      </section>
 
       {profileEmpty && (
         <section className="card callout">
@@ -34,6 +53,7 @@ export function DashboardPage() {
 
       <div className="grid-3">
         <section className="card">
+          <span className="card-icon" aria-hidden="true">📍</span>
           <h2>On campus</h2>
           {checkedIn ? (
             <>
@@ -49,6 +69,7 @@ export function DashboardPage() {
         </section>
 
         <section className="card">
+          <span className="card-icon" aria-hidden="true">🤝</span>
           <h2>Study partner</h2>
           {match.data ? (
             <div className="row">
@@ -67,6 +88,7 @@ export function DashboardPage() {
         </section>
 
         <section className="card">
+          <span className="card-icon" aria-hidden="true">🔔</span>
           <h2>Notifications</h2>
           <p>
             <strong>{inbox.unread}</strong> unread
