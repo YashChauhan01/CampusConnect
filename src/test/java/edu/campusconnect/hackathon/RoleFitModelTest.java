@@ -31,10 +31,29 @@ class RoleFitModelTest {
     }
 
     @Test
-    void skillMatchIsCaseInsensitiveAndMatchesSubstringsEitherWay() {
-        double fit = model.skillMatch(Map.of("JavaScript", 2), List.of("java"));
-        assertTrue(fit > 0, "'javascript' contains keyword 'java'");
-        assertTrue(model.skillMatch(Map.of("c", 2), List.of("c++", "c")) > 0);
+    void skillMatchIsCaseInsensitiveAndMatchesWholeTokensEitherWay() {
+        assertTrue(model.skillMatch(Map.of("Spring Boot", 2), List.of("SPRING")) > 0);
+        assertTrue(model.skillMatch(Map.of("spring", 2), List.of("spring boot")) > 0);
+        assertTrue(model.skillMatch(Map.of(" C ", 2), List.of("c++", "c")) > 0);
+        assertTrue(model.skillMatch(Map.of("C++", 2), List.of("c++")) > 0);
+    }
+
+    @Test
+    void shortSkillNamesDoNotMatchInsideOtherWords() {
+        assertEquals(0.0, model.skillMatch(Map.of("C", 3),
+                List.of("docker", "css", "javascript", "pitch", "c++", "c#")), 1e-9);
+        assertEquals(0.0, model.skillMatch(Map.of("Go", 3), List.of("mongodb", "django")), 1e-9);
+        assertEquals(0.0, model.skillMatch(Map.of("JavaScript", 3), List.of("java")), 1e-9);
+        assertEquals(0.0, model.skillMatch(Map.of("machine learning", 3), List.of("deep learning")), 1e-9);
+    }
+
+    @Test
+    void aliasesMapCommonSpellingsToOneToken() {
+        assertTrue(model.skillMatch(Map.of("Postgres", 2), List.of("postgresql")) > 0);
+        assertTrue(model.skillMatch(Map.of("JS", 2), List.of("javascript")) > 0);
+        assertTrue(model.skillMatch(Map.of("Node.js", 2), List.of("node")) > 0);
+        assertTrue(model.skillMatch(Map.of("Machine Learning", 2), List.of("ml")) > 0);
+        assertTrue(model.skillMatch(Map.of("golang", 2), List.of("go")) > 0);
     }
 
     @Test

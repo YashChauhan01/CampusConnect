@@ -39,12 +39,14 @@ Five roles (backend, frontend, data/ML, design, product); participants rank up t
 
 | Participants | Teams | Synthesis (ms) | Fit: Hungarian / random | Preferences met: Hungarian / random | σ strength: Hungarian / random |
 |---:|---:|---:|---:|---:|---:|
-| 12 | 3 | 0.7 | 0.568 / 0.286 | 73.9% / 41.9% | 0.0191 / 0.0556 |
-| 24 | 5 | 0.6 | 0.604 / 0.271 | 79.3% / 41.4% | 0.0169 / 0.0655 |
-| 48 | 10 | 1.4 | 0.613 / 0.272 | 79.4% / 39.0% | 0.0184 / 0.0686 |
-| 96 | 20 | 2.1 | 0.615 / 0.281 | 79.0% / 41.4% | 0.0181 / 0.0702 |
-| 192 | 39 | 8.3 | 0.618 / 0.281 | 81.6% / 41.1% | 0.0189 / 0.0728 |
-| 384 | 77 | 48.2 | 0.614 / 0.275 | 80.9% / 39.9% | 0.0205 / 0.0736 |
+| 12 | 3 | 1.1 | 0.568 / 0.286 | 73.9% / 41.9% | 0.0191 / 0.0556 |
+| 24 | 5 | 1.5 | 0.604 / 0.271 | 79.3% / 41.4% | 0.0169 / 0.0655 |
+| 48 | 10 | 3.1 | 0.613 / 0.272 | 79.4% / 39.0% | 0.0184 / 0.0686 |
+| 96 | 20 | 5.0 | 0.615 / 0.281 | 79.0% / 41.4% | 0.0181 / 0.0702 |
+| 192 | 39 | 13.2 | 0.618 / 0.281 | 81.6% / 41.1% | 0.0189 / 0.0728 |
+| 384 | 77 | 55.6 | 0.614 / 0.275 | 80.9% / 39.9% | 0.0205 / 0.0736 |
+
+Regenerated 2026-10-11 after role-keyword matching switched from substrings to whole tokens (see `RoleFitModel`). The quality figures are unchanged because this synthetic skill pool has no short-name collisions such as "c" in "css" or "go" in "mongodb"; only the timings moved.
 
 ### End-to-end check with 400 generated students (2026-10-11)
 
@@ -56,15 +58,16 @@ sees exactly one team after publishing).
 
 | | Hungarian | Random (mean of 50) |
 |---|---:|---:|
-| Average role fit | 0.776 | 0.377 |
-| Got a top-3 role | 83.0% | 32.6% |
-| σ of team strength | 0.0165 | 0.0810 |
-| Strongest − weakest team | 0.068 | 0.394 |
+| Average role fit | 0.752 | 0.316 |
+| Got a top-3 role | 83.2% | 32.3% |
+| σ of team strength | 0.0174 | 0.0822 |
+| Strongest − weakest team | 0.089 | 0.387 |
 
 Synthesis took about 180-190 ms server-side once warm (388 ms on the first call), on the same laptop as above. The
 optimality proof priced all 1,600 alternative role moves and found no improving cycle. Backend was over-subscribed
 (120 first choices for 80 places), so 44 of those 120 were given another role; this is
-the trade-off the optimum makes, not a fault.
+the trade-off the optimum makes, not a fault. Figures are after the switch to whole-token skill matching; with the
+old substring matching (where "C" matched "css" and "Go" matched "mongodb") fit was inflated to 0.776 / 0.377.
 
 ## Hungarian algorithm scaling (dense n × n cost matrix)
 

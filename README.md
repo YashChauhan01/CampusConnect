@@ -57,7 +57,7 @@ Open http://localhost:5173 and log in as `asha@college.edu` or `ravi@college.edu
 ## Tests
 
 ```bash
-mvn verify                                  # 149 backend tests (unit + integration on real PostgreSQL)
+mvn verify                                  # 151 backend tests (unit + integration on real PostgreSQL)
 cd frontend && npm test && npm run lint && npm run build
 mvn test -Dtest=EvaluationReport -Deval=true   # regenerate docs/EVALUATION.md
 ```
