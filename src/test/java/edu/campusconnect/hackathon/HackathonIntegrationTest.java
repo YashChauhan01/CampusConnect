@@ -145,6 +145,41 @@ class HackathonIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    void analysisPreviewsTheDraftAndProvesTheRoleAllocationOptimal() throws Exception {
+        getJson(organizer, url("/analysis"), 400);
+        registerAll();
+        getJson(students.get(0), url("/analysis"), 403);
+
+        JsonNode analysis = getJson(organizer, url("/analysis"), 200);
+        assertThat(analysis.get("participants").asInt()).isEqualTo(6);
+        assertThat(analysis.get("teamCount").asInt()).isEqualTo(2);
+        assertThat(analysis.get("check").get("passed").asBoolean()).isTrue();
+        assertThat(analysis.get("check").get("movesExamined").asLong()).isEqualTo(12);
+        assertThat(analysis.get("randomRuns").asInt()).isEqualTo(TeamAnalysisService.RANDOM_RUNS);
+        assertThat(analysis.get("hungarian").get("averageFit").asDouble())
+                .isGreaterThan(analysis.get("random").get("averageFit").asDouble());
+        int flowTotal = 0;
+        for (JsonNode row : analysis.get("flow")) {
+            for (JsonNode cell : row) {
+                flowTotal += cell.asInt();
+            }
+        }
+        assertThat(flowTotal).isEqualTo(6);
+
+        // Nothing is stored, and the preview is exactly what "Generate teams" saves.
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM hackathon_teams", Integer.class)).isZero();
+        postJsonOk(organizer, url("/close"), 200);
+        JsonNode draft = postJsonOk(organizer, url("/synthesize"), 200);
+        Set<String> stored = new HashSet<>();
+        draft.get("teams").forEach(t -> t.get("members").forEach(m ->
+                stored.add(t.get("number").asInt() + ":" + m.get("studentId").asText())));
+        Set<String> previewed = new HashSet<>();
+        analysis.get("teams").forEach(t -> t.get("members").forEach(m ->
+                previewed.add(t.get("number").asInt() + ":" + m.get("studentId").asText())));
+        assertThat(previewed).isEqualTo(stored);
+    }
+
+    @Test
     void synthesisFormsBalancedTeamsAndPublishingRevealsThem() throws Exception {
         registerAll();
 

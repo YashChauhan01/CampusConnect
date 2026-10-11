@@ -15,6 +15,7 @@ import type {
   Proficiency,
   RoundSummary,
   Suggestion,
+  TeamAnalysis,
   TeamsView,
   Zone,
   ZoneInput,
@@ -81,6 +82,7 @@ export const hackathons = {
   synthesize: (id: string) => api.post<TeamsView>(`/hackathons/${id}/synthesize`),
   publish: (id: string) => api.post<TeamsView>(`/hackathons/${id}/publish`),
   teams: (id: string) => api.get<TeamsView>(`/hackathons/${id}/teams`),
+  analysis: (id: string) => api.get<TeamAnalysis>(`/hackathons/${id}/analysis`),
 };
 
 export const notifications = {

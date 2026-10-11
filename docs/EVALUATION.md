@@ -46,6 +46,26 @@ Five roles (backend, frontend, data/ML, design, product); participants rank up t
 | 192 | 39 | 8.3 | 0.618 / 0.281 | 81.6% / 41.1% | 0.0189 / 0.0728 |
 | 384 | 77 | 48.2 | 0.614 / 0.275 | 80.9% / 39.9% | 0.0205 / 0.0736 |
 
+### End-to-end check with 400 generated students (2026-10-11)
+
+`scripts/simulate_hackathon.py` registered all 400 seeded students for a five-role hackathon (Backend, Frontend,
+Data / ML, DevOps, Design & Product) with preferences derived from their own skills: 70% ranked the roles their skills
+fit, 15% ranked at random and 15% gave none (347 gave preferences, 53 none). Result: all checks passed (everyone
+placed once, 80 teams of 5, one of each role per team, saved draft identical to the analysed preview, every student
+sees exactly one team after publishing).
+
+| | Hungarian | Random (mean of 50) |
+|---|---:|---:|
+| Average role fit | 0.776 | 0.377 |
+| Got a top-3 role | 83.0% | 32.6% |
+| σ of team strength | 0.0165 | 0.0810 |
+| Strongest − weakest team | 0.068 | 0.394 |
+
+Synthesis took about 180-190 ms server-side once warm (388 ms on the first call), on the same laptop as above. The
+optimality proof priced all 1,600 alternative role moves and found no improving cycle. Backend was over-subscribed
+(120 first choices for 80 places), so 44 of those 120 were given another role; this is
+the trade-off the optimum makes, not a fault.
+
 ## Hungarian algorithm scaling (dense n × n cost matrix)
 
 | n | Time (ms) |

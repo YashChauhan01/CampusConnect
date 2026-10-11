@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { hackathons } from '../api/endpoints';
 import type { HackathonDetail, TeamsView } from '../api/types';
 import { Alert, EmptyState, PageHeader, Pill, Spinner } from '../components/ui';
+import { useAuth } from '../auth/AuthContext';
 import { useAction, useLoad } from '../hooks';
 import { useRealtime } from '../realtime/RealtimeContext';
 import { STATUS_LABEL } from './HackathonsPage';
@@ -236,6 +237,7 @@ function OrganizerPanel({
 export function HackathonDetailPage() {
   const { id = '' } = useParams();
   const { version } = useRealtime();
+  const { profile } = useAuth();
   const hackathonVersion = version('hackathons');
   const detail = useLoad(() => hackathons.detail(id), [id, hackathonVersion]);
   const [teams, setTeams] = useState<TeamsView | undefined>(undefined);
@@ -277,9 +279,16 @@ export function HackathonDetailPage() {
         title={h.name}
         subtitle={`${STATUS_LABEL[h.status]} · organised by ${h.organizedByMe ? 'you' : h.organizer} · ${h.participants} registered`}
         actions={
-          <Link className="button secondary" to="/hackathons">
-            All hackathons
-          </Link>
+          <>
+            {(organizer || profile?.admin) && h.participants >= 2 && (
+              <Link className="button secondary" to={`/hackathons/${h.id}/analysis`}>
+                Analyse teams
+              </Link>
+            )}
+            <Link className="button secondary" to="/hackathons">
+              All hackathons
+            </Link>
+          </>
         }
       />
       {h.description && <p>{h.description}</p>}

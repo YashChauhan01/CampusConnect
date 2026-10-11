@@ -255,7 +255,8 @@ public class HackathonService {
         return prefs;
     }
 
-    private List<Participant> toParticipants(Collection<HackathonParticipant> registered) {
+    /** The synthesizer's view of the registrations; also used by {@link TeamAnalysisService}. */
+    List<Participant> toParticipants(Collection<HackathonParticipant> registered) {
         Set<UUID> ids = registered.stream().map(HackathonParticipant::studentId).collect(Collectors.toSet());
         Map<UUID, Map<String, Integer>> skills = new HashMap<>();
         for (StudentSkill s : studentSkills.findByStudents(ids)) {
@@ -266,7 +267,7 @@ public class HackathonService {
                 skills.getOrDefault(p.studentId(), Map.of()), List.copyOf(p.getRolePreferences()))).toList();
     }
 
-    private static List<Role> toRoles(List<HackathonRole> list) {
+    static List<Role> toRoles(List<HackathonRole> list) {
         return list.stream().map(r -> new Role(r.getId(), r.getName(), r.keywordList())).toList();
     }
 

@@ -57,7 +57,7 @@ Open http://localhost:5173 and log in as `asha@college.edu` or `ravi@college.edu
 ## Tests
 
 ```bash
-mvn verify                                  # 138 backend tests (unit + integration on real PostgreSQL)
+mvn verify                                  # 149 backend tests (unit + integration on real PostgreSQL)
 cd frontend && npm test && npm run lint && npm run build
 mvn test -Dtest=EvaluationReport -Deval=true   # regenerate docs/EVALUATION.md
 ```
@@ -92,6 +92,15 @@ is a compatible pair, and green lines are the pairs chosen by the maximum-weight
 candidates and the score breakdown. The page also compares the optimal matching with a greedy baseline, shows the
 timing of recent rounds, and runs an independent optimality check (no re-pairing of two matched pairs, or swap with an
 unmatched student, may improve the total weight).
+
+Hackathon organisers (and administrators) get an **Analyse teams** page for every hackathon: the teams the Hungarian
+synthesis forms from the current registrations next to random teams of the same sizes (mean of 50 shuffles), a chart
+of every team's strength (flat = balanced), how many people got their 1st/2nd/3rd choice, a first-choice-vs-role-given
+table, and a searchable grid of all teams where clicking a participant shows their skills and fit for every role. It
+also proves the role allocation optimal: no cycle of participants trading roles can raise the total fit (checked
+exactly on the role exchange graph). `python scripts/simulate_hackathon.py` registers every seeded student with
+skill-based preferences and checks the whole flow end to end. For a big graph on the match-graph page, start the
+server with `APP_MATCHING_ROUND_INTERVAL=1h` so the automatic 20 s rounds do not pair everyone before you look.
 
 ## Administrators and campus zones
 

@@ -275,3 +275,51 @@ export interface RoundSummary {
   totalWeight: number;
   durationMs: number;
 }
+
+export interface SynthesisMethod {
+  averageFit: number;
+  preferenceSatisfaction: number;
+  strengthStdDev: number;
+  strengthSpread: number;
+  /** Share placed in their 1st, 2nd, 3rd choice and in an unranked role. */
+  preferenceRanks: number[];
+  /** Average strength (0-1) of every team, weakest first. */
+  teamStrengths: number[];
+  millis: number;
+}
+
+export interface AnalysisMember {
+  studentId: string;
+  name: string;
+  roleId: number;
+  fit: number;
+  strength: number;
+  preferenceRank: number | null;
+  preferences: number[];
+  skills: { name: string; level: number }[];
+  /** Fit (percent) for every role, in role order. */
+  fitByRole: number[];
+}
+
+export interface TeamAnalysis {
+  hackathonId: string;
+  name: string;
+  status: HackathonStatus;
+  participants: number;
+  teamCount: number;
+  roles: { id: number; name: string; keywords: string[]; holders: number; firstChoices: number }[];
+  teams: { number: number; members: AnalysisMember[]; averageStrength: number }[];
+  hungarian: SynthesisMethod;
+  random: SynthesisMethod;
+  randomRuns: number;
+  check: {
+    participants: number;
+    roles: number;
+    movesExamined: number;
+    improvingCycles: number;
+    totalFit: number;
+    passed: boolean;
+  };
+  /** flow[i][j]: first choice role i (last row: no preference) allocated role j. */
+  flow: number[][];
+}

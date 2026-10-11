@@ -389,3 +389,51 @@ th { color: var(--muted); font-weight: 600; }
 .tag { margin-left: 0.4rem; font-size: 0.7rem; background: var(--success-soft); color: var(--success); padding: 0.05rem 0.4rem; border-radius: 999px; }
 .edge-details { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 @media (max-width: 960px) { .graph-layout { grid-template-columns: 1fr; } }
+
+/* ---- team synthesis analysis ---- */
+.two-col { display: grid; gap: 1rem; margin-bottom: 1rem; }
+.two-col .card { margin-bottom: 0; }
+.chart { margin: 0; }
+.chart-box { position: relative; }
+.chart-box svg { display: block; width: 100%; height: auto; }
+.chart .grid-line { stroke: var(--border); stroke-width: 1; }
+.chart .crosshair { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .axis-label { fill: var(--muted); font-size: 12px; }
+.chart figcaption { font-size: 0.85rem; margin-top: 0.4rem; }
+.chart-tip { position: absolute; top: 4px; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 8px; padding: 0.35rem 0.55rem; font-size: 0.8rem; display: grid; pointer-events: none; white-space: nowrap; }
+.chart-note { font-size: 0.85rem; margin: 0.3rem 0 0.8rem; }
+.line-sample.dashed { background: repeating-linear-gradient(90deg, #94a3b8 0 5px, transparent 5px 9px); }
+.swatch.square { border-radius: 3px; }
+.pref-row { display: grid; grid-template-columns: 82px 1fr; align-items: center; gap: 0.5rem; margin: 0.45rem 0; }
+.pref-label { font-size: 0.85rem; color: var(--muted); }
+.pref-bar { display: flex; gap: 2px; height: 28px; }
+.pref-seg { display: flex; align-items: center; justify-content: center; font-size: 0.75rem; min-width: 2px; }
+.pref-seg:first-child { border-radius: 4px 0 0 4px; }
+.pref-seg:last-child { border-radius: 0 4px 4px 0; }
+.table-scroll { overflow-x: auto; }
+table.flow { border-collapse: separate; border-spacing: 2px; font-size: 0.82rem; }
+table.flow th { font-weight: 500; text-align: left; white-space: nowrap; padding: 0.25rem 0.4rem; }
+table.flow td { text-align: center; min-width: 44px; padding: 0.35rem; border-radius: 4px; font-variant-numeric: tabular-nums; }
+table.flow td.diag { outline: 2px solid var(--text); outline-offset: -2px; }
+.role-chip { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
+.role-chip .swatch { border-radius: 3px; }
+.team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.7rem; margin-top: 0.8rem; max-height: 900px; overflow-y: auto; padding-right: 2px; }
+.team-card { border: 1px solid var(--border); border-radius: 10px; padding: 0.55rem; background: var(--surface); }
+.team-card header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.3rem; font-size: 0.9rem; }
+.team-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.member-row { display: flex; align-items: center; gap: 0.45rem; width: 100%; text-align: left; background: none; border: 1px solid transparent; border-radius: 6px; padding: 0.2rem 0.3rem; font: inherit; cursor: pointer; }
+.member-row:hover, .member-row.on { background: var(--primary-soft); border-color: #d6d9ff; }
+.member-row.hit { background: var(--warn-soft); }
+.member-row.dim { opacity: 0.35; }
+.member-row .role-bar { width: 4px; align-self: stretch; border-radius: 2px; }
+.member-text { display: grid; flex: 1; min-width: 0; font-size: 0.85rem; line-height: 1.25; }
+.member-text > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fit-num { font-size: 0.8rem; font-variant-numeric: tabular-nums; color: var(--muted); }
+.skill-list { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; list-style: none; padding: 0; margin: 0; font-size: 0.88rem; }
+.fit-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.35rem; }
+.fit-list li { display: grid; grid-template-columns: 90px 1fr 30px; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+.fit-list li.on .fit-name { font-weight: 700; }
+.fit-track { height: 10px; background: #eef0f5; border-radius: 4px; overflow: hidden; }
+.fit-track span { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+.fit-value { text-align: right; font-variant-numeric: tabular-nums; }
+.role-summary { display: grid; gap: 0.1rem; }

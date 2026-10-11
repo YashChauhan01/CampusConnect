@@ -55,6 +55,17 @@ def login(base, email):
     return body["accessToken"] if status == 200 else None
 
 
+def report():
+    """Prints the timing table and the verdict; returns the process exit code."""
+    print("\n{:<42}{:>6}{:>10}{:>10}{:>10}".format("request", "n", "mean ms", "p95 ms", "max ms"))
+    for label, values in sorted(timings.items()):
+        values.sort()
+        p95 = values[min(len(values) - 1, int(len(values) * 0.95))]
+        print("{:<42}{:>6}{:>10.1f}{:>10.1f}{:>10.1f}".format(label[:41], len(values), statistics.mean(values), p95, values[-1]))
+    print("\nFAILED:" if failures else "\nALL CHECKS PASSED", *failures, sep="\n  " if failures else "")
+    return 1 if failures else 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default="http://localhost:8080")
@@ -167,14 +178,7 @@ def main():
     with ThreadPoolExecutor(args.threads) as pool:
         out = list(pool.map(lambda t: call(base, "POST", "/presence/check-out", t)[0], sample[:50]))
     check(all(s in (200, 204) for s in out), "check-out")
-
-    print("\n{:<42}{:>6}{:>10}{:>10}{:>10}".format("request", "n", "mean ms", "p95 ms", "max ms"))
-    for label, values in sorted(timings.items()):
-        values.sort()
-        p95 = values[min(len(values) - 1, int(len(values) * 0.95))]
-        print("{:<42}{:>6}{:>10.1f}{:>10.1f}{:>10.1f}".format(label[:41], len(values), statistics.mean(values), p95, values[-1]))
-    print("\nFAILED:" if failures else "\nALL CHECKS PASSED", *failures, sep="\n  " if failures else "")
-    return 1 if failures else 0
+    return report()
 
 
 if __name__ == "__main__":

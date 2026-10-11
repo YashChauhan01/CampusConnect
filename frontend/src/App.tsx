@@ -11,6 +11,7 @@ import { HackathonsPage, NewHackathonPage } from './pages/HackathonsPage';
 import { MatchGraphPage } from './pages/MatchGraphPage';
 import { MatchesPage } from './pages/MatchesPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { TeamSynthesisPage } from './pages/TeamSynthesisPage';
 import {
   ForgotPasswordPage,
   LoginPage,
@@ -59,6 +60,7 @@ export function App() {
           <Route path="/hackathons" element={<HackathonsPage />} />
           <Route path="/hackathons/new" element={<NewHackathonPage />} />
           <Route path="/hackathons/:id" element={<HackathonDetailPage />} />
+          <Route path="/hackathons/:id/analysis" element={<TeamSynthesisPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/admin/zones" element={<AdminZonesPage />} />
           <Route path="/admin/graph" element={<MatchGraphPage />} />

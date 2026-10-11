@@ -33,10 +33,12 @@ public class HackathonController {
 
     private final CurrentStudent current;
     private final HackathonService hackathons;
+    private final TeamAnalysisService analysis;
 
-    public HackathonController(CurrentStudent current, HackathonService hackathons) {
+    public HackathonController(CurrentStudent current, HackathonService hackathons, TeamAnalysisService analysis) {
         this.current = current;
         this.hackathons = hackathons;
+        this.analysis = analysis;
     }
 
     @GetMapping
@@ -89,5 +91,14 @@ public class HackathonController {
     @GetMapping("/{id}/teams")
     public HackathonService.TeamsView teams(@PathVariable UUID id) {
         return hackathons.teams(current.require(), id);
+    }
+
+    /**
+     * Organiser or administrators: the teams the synthesis would form now, a random-teams baseline and a proof that
+     * the role allocation is optimal. Nothing is stored.
+     */
+    @GetMapping("/{id}/analysis")
+    public TeamAnalysisService.Analysis analysis(@PathVariable UUID id) {
+        return analysis.analyze(current.require(), id);
     }
 }
