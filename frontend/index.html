@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Find study partners and build balanced hackathon teams on campus." />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='30' cy='50' r='14' fill='%236366f1'/%3E%3Ccircle cx='70' cy='30' r='14' fill='%236366f1'/%3E%3Ccircle cx='70' cy='72' r='14' fill='%236366f1'/%3E%3Cpath d='M30 50L70 30M30 50L70 72' stroke='%236366f1' stroke-width='6'/%3E%3C/svg%3E" />
-    <meta name="theme-color" content="#f5f6fb" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0b0d14" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#080b18" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@500;600;700&display=swap"
     />
     <title>CampusConnect</title>
     <script>
@@ -19,9 +18,7 @@
       (function () {
         var theme;
         try { theme = localStorage.getItem('campusconnect-theme'); } catch (e) {}
-        if (theme !== 'light' && theme !== 'dark') {
-          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
+        if (theme !== 'light' && theme !== 'dark') theme = 'dark'; // dark unless the student chose light
         document.documentElement.dataset.theme = theme;
       })();
     </script>

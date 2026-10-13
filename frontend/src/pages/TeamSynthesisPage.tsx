@@ -274,6 +274,7 @@ export function TeamSynthesisPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Team synthesis"
         title={a ? `Team synthesis · ${a.name}` : 'Team synthesis'}
         subtitle="The teams the Hungarian algorithm forms from the current registrations, compared with random teams of the same sizes. Nothing is saved here."
         actions={

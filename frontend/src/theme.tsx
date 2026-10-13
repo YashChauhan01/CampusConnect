@@ -6,8 +6,9 @@ export type Theme = 'light' | 'dark';
 const STORAGE_KEY = 'campusconnect-theme';
 const listeners = new Set<() => void>();
 
-function systemTheme(): Theme {
-  return typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+/** The app is designed dark-first; light is an explicit choice. */
+function defaultTheme(): Theme {
+  return 'dark';
 }
 
 function storedTheme(): Theme | null {
@@ -19,10 +20,10 @@ function storedTheme(): Theme | null {
   }
 }
 
-/** The theme in force: the one on <html> (set before first paint by index.html), else stored, else the OS. */
+/** The theme in force: the one on <html> (set before first paint by index.html), else stored, else dark. */
 export function currentTheme(): Theme {
   const attr = typeof document !== 'undefined' ? document.documentElement.dataset.theme : undefined;
-  return attr === 'light' || attr === 'dark' ? attr : (storedTheme() ?? systemTheme());
+  return attr === 'light' || attr === 'dark' ? attr : (storedTheme() ?? defaultTheme());
 }
 
 function apply(theme: Theme) {

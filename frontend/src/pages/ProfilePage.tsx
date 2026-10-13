@@ -4,6 +4,7 @@ import type { Item, Profile, Proficiency } from '../api/types';
 import { PROFICIENCIES } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { AssessmentPanel } from '../components/AssessmentPanel';
+import { initials } from '../components/Layout';
 import { Alert, EmptyState, Field, LevelPill, PageHeader, levelLabel } from '../components/ui';
 import { useAction, useLoad } from '../hooks';
 
@@ -167,9 +168,29 @@ export function ProfilePage() {
   return (
     <>
       <PageHeader
-        title="Your profile"
+        eyebrow="Your identity"
+        title="A profile people remember."
         subtitle="Skills and subjects power both peer matching and hackathon teams. Be honest — it makes better matches."
       />
+      {profile && (
+        <section className="card profile-banner">
+          <div className="banner-art" aria-hidden="true" />
+          <div className="banner-body">
+            <span className="avatar-badge" aria-hidden="true">
+              {initials(profile.fullName)}
+            </span>
+            <div>
+              <strong>{profile.fullName}</strong>
+              <span className="muted small">
+                {profile.email} · {profile.subjects.length} subjects · {profile.skills.length} skills
+              </span>
+            </div>
+            <span className="status-chip" style={{ marginLeft: 'auto' }}>
+              Open to connect
+            </span>
+          </div>
+        </section>
+      )}
       <div className="grid-2">
         <section className="card">
           <h2>About you</h2>

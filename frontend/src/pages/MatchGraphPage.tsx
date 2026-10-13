@@ -253,6 +253,7 @@ export function MatchGraphPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Admin console"
         title="Matching graph"
         subtitle="Every available student is a node; a line means two students are academically compatible. Green lines are the pairs chosen by the maximum-weight matching."
         actions={

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { matching } from '../api/endpoints';
 import type { MatchStatus, MatchView } from '../api/types';
+import { ChatPanel } from '../components/ChatPanel';
 import { Alert, EmptyState, PageHeader, Pill, ScoreBadge, ScoreBreakdown, Spinner } from '../components/ui';
 import { useAction, useCountdown, useLoad } from '../hooks';
 import { useRealtime } from '../realtime/RealtimeContext';
@@ -26,7 +27,15 @@ function CurrentMatch({ match, onChanged }: { match: MatchView; onChanged: () =>
   return (
     <section className="card match">
       <div className="row spread">
-        <h2>{match.status === 'ACCEPTED' ? 'You are matched!' : 'New study partner'}</h2>
+        <h2>
+          {match.status === 'ACCEPTED'
+            ? 'You are matched!'
+            : match.requestedByYou
+              ? 'Request sent'
+              : match.direct
+                ? 'Study request'
+                : 'New study partner'}
+        </h2>
         <ScoreBadge score={match.score} />
       </div>
       <div className="person">
@@ -49,11 +58,15 @@ function CurrentMatch({ match, onChanged }: { match: MatchView; onChanged: () =>
       {match.status === 'PROPOSED' && (
         <>
           <p className="muted">
-            {match.youAccepted
-              ? `Waiting for ${match.partner.name} to accept`
-              : match.partnerAccepted
-                ? `${match.partner.name} already accepted`
-                : 'Both of you need to accept before contact details are shared'}
+            {match.requestedByYou
+              ? `Waiting for ${match.partner.name} to accept your request`
+              : match.direct
+                ? `${match.partner.name} wants to study with you`
+                : match.youAccepted
+                  ? `Waiting for ${match.partner.name} to accept`
+                  : match.partnerAccepted
+                    ? `${match.partner.name} already accepted`
+                    : 'Both of you need to accept before contact details are shared'}
             {remaining && (
               <>
                 {' '}
@@ -67,22 +80,29 @@ function CurrentMatch({ match, onChanged }: { match: MatchView; onChanged: () =>
                 Accept
               </button>
             )}
-            <button
-              className="button secondary"
-              disabled={pending}
-              onClick={() => void act(() => matching.decline(match.id))}
-            >
-              Not now
-            </button>
+            {match.requestedByYou ? (
+              <button className="button secondary" disabled={pending} onClick={() => void act(() => matching.cancel(match.id))}>
+                Withdraw request
+              </button>
+            ) : (
+              <button
+                className="button secondary"
+                disabled={pending}
+                onClick={() => void act(() => matching.decline(match.id))}
+              >
+                Not now
+              </button>
+            )}
           </div>
         </>
       )}
       {match.status === 'ACCEPTED' && (
         <>
           <Alert kind="success">
-            Meet at {match.partner.zone ?? 'a spot you both like'}. You can reach {match.partner.name} at{' '}
+            Meet at {match.partner.zone ?? 'a spot you both like'}. Chat below, or reach {match.partner.name} at{' '}
             <a href={`mailto:${match.partner.email}`}>{match.partner.email}</a>.
           </Alert>
+          <ChatPanel match={match} />
           <button
             className="button secondary"
             disabled={pending}
@@ -108,8 +128,9 @@ export function MatchesPage() {
   return (
     <>
       <PageHeader
-        title="Study matches"
-        subtitle="We pair students who can learn from each other, are close by, and are free right now."
+        eyebrow="Match discovery"
+        title="Your people are here."
+        subtitle="We pair students who can learn from each other, are close by, and are free right now. Both of you accept before contact details are shared."
         actions={
           <Link className="button" to="/campus">
             Go to campus

@@ -276,6 +276,7 @@ export function HackathonDetailPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Hackathon"
         title={h.name}
         subtitle={`${STATUS_LABEL[h.status]} · organised by ${h.organizedByMe ? 'you' : h.organizer} · ${h.participants} registered`}
         actions={

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Sparkles } from 'lucide-react';
 import { ApiError } from '../../api/client';
 import { auth } from '../../api/endpoints';
 import { useAuth } from '../../auth/AuthContext';
@@ -15,8 +16,12 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle?: st
       </div>
       <div className="auth-card">
         <Link to="/login" className="brand">
-          <span className="logo" aria-hidden="true" />
-          CampusConnect
+          <span className="logo" aria-hidden="true">
+            <Sparkles />
+          </span>
+          <span>
+            campus<em>Connect</em>
+          </span>
         </Link>
         <h1>{title}</h1>
         {subtitle && <p className="muted">{subtitle}</p>}

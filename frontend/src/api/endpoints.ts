@@ -3,6 +3,7 @@ import type {
   AdminZone,
   Assessment,
   AssessmentStatus,
+  ChatMessage,
   CheckInRequest,
   CreateHackathonRequest,
   GraphView,
@@ -68,6 +69,10 @@ export const matching = {
   accept: (id: string) => api.post<MatchView>(`/matching/matches/${id}/accept`),
   decline: (id: string) => api.post<MatchView>(`/matching/matches/${id}/decline`),
   complete: (id: string) => api.post<MatchView>(`/matching/matches/${id}/complete`),
+  request: (studentId: string) => api.post<MatchView>('/matching/requests', { studentId }),
+  cancel: (id: string) => api.post<MatchView>(`/matching/matches/${id}/cancel`),
+  messages: (id: string) => api.get<ChatMessage[]>(`/matching/matches/${id}/messages`),
+  send: (id: string, body: string) => api.post<ChatMessage>(`/matching/matches/${id}/messages`, { body }),
 };
 
 export const hackathons = {

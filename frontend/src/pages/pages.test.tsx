@@ -39,6 +39,8 @@ const proposed: MatchView = {
   partnerAccepted: false,
   createdAt: new Date().toISOString(),
   expiresAt: new Date(Date.now() + 300_000).toISOString(),
+  direct: false,
+  requestedByYou: false,
 };
 
 describe('ProfilePage', () => {

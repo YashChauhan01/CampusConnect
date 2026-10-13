@@ -97,6 +97,17 @@ export interface MatchView {
   partnerAccepted: boolean;
   createdAt: string;
   expiresAt: string;
+  /** A request one student sent to another, rather than a pairing from a matching round. */
+  direct: boolean;
+  requestedByYou: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  mine: boolean;
+  body: string;
+  createdAt: string;
 }
 
 export interface Suggestion {
@@ -182,7 +193,10 @@ export type NotificationType =
   | 'MATCH_CONFIRMED'
   | 'MATCH_DECLINED'
   | 'MATCH_EXPIRED'
-  | 'TEAMS_PUBLISHED';
+  | 'TEAMS_PUBLISHED'
+  | 'MATCH_REQUESTED'
+  | 'MATCH_CANCELLED'
+  | 'CHAT_MESSAGE';
 
 export interface NotificationView {
   id: string;
@@ -202,7 +216,7 @@ export interface Inbox {
 /** Message delivered over the WebSocket. */
 export interface Push {
   kind: 'NOTIFICATION' | 'REFRESH';
-  topic: 'matches' | 'hackathons' | 'presence';
+  topic: 'matches' | 'hackathons' | 'presence' | 'chat';
   notification: NotificationView | null;
 }
 

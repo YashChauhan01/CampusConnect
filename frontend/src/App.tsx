@@ -10,6 +10,7 @@ import { HackathonDetailPage } from './pages/HackathonDetailPage';
 import { HackathonsPage, NewHackathonPage } from './pages/HackathonsPage';
 import { MatchGraphPage } from './pages/MatchGraphPage';
 import { MatchesPage } from './pages/MatchesPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { TeamSynthesisPage } from './pages/TeamSynthesisPage';
 import {
@@ -62,6 +63,7 @@ export function App() {
           <Route path="/hackathons/:id" element={<HackathonDetailPage />} />
           <Route path="/hackathons/:id/analysis" element={<TeamSynthesisPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/admin/zones" element={<AdminZonesPage />} />
           <Route path="/admin/graph" element={<MatchGraphPage />} />
         </Route>

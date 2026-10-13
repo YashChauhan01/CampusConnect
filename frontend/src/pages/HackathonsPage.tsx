@@ -42,8 +42,9 @@ export function HackathonsPage() {
   return (
     <>
       <PageHeader
-        title="Hackathons"
-        subtitle="Register with your preferred roles and we will form balanced teams for you."
+        eyebrow="Collaborate & build"
+        title="Hackathons for your next big idea."
+        subtitle="Register with ranked role preferences and we will form balanced, role-diverse teams for you."
         actions={
           <Link className="button" to="/hackathons/new">
             Organise a hackathon
@@ -106,7 +107,7 @@ export function NewHackathonPage() {
 
   return (
     <>
-      <PageHeader title="Organise a hackathon" subtitle="Define the roles every team needs. Each team gets one member per role." />
+      <PageHeader eyebrow="Collaborate & build" title="Organise a hackathon" subtitle="Define the roles every team needs. Each team gets one member per role." />
       <form className="card" onSubmit={submit}>
         <Field label="Name">
           <input value={name} onChange={(e) => setName(e.target.value)} minLength={3} maxLength={120} required />

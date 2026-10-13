@@ -143,6 +143,7 @@ export function AdminZonesPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Admin console"
         title="Campus zones"
         subtitle="Where students can check in. Coordinates are metres on a campus plane (any origin); closer zones score higher in matching."
       />
