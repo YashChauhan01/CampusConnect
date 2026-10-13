@@ -45,7 +45,7 @@ class NotificationListener {
                     Notification.Type.MATCH_PARTNER_ACCEPTED, name(e.acceptedBy()) + " accepted",
                     name(e.acceptedBy()) + " wants to study with you. Accept to confirm the match.", MATCHES_LINK);
             case MatchEvent.Confirmed e -> notifyBoth(e.studentA(), e.studentB(), Notification.Type.MATCH_CONFIRMED,
-                    "Match confirmed", (other) -> "You and " + name(other) + " are matched. Say hello!");
+                    "Match confirmed", (other) -> "You and " + name(other) + " are matched. Say hello in the chat!");
             case MatchEvent.Declined e -> notifications.notify(e.other(), Notification.Type.MATCH_DECLINED,
                     "Match declined", "Your proposed partner is not available. We will keep looking.", MATCHES_LINK);
             case MatchEvent.Expired e -> notifyBoth(e.studentA(), e.studentB(), Notification.Type.MATCH_EXPIRED,
@@ -53,6 +53,28 @@ class NotificationListener {
             case MatchEvent.Completed e -> {
                 notifications.hint(e.studentA(), "matches");
                 notifications.hint(e.studentB(), "matches");
+            }
+            case MatchEvent.Requested e -> {
+                int score = matches.findById(e.matchId()).map(m -> (int) Math.round(m.getWeight() * 100)).orElse(0);
+                notifications.notify(e.target(), Notification.Type.MATCH_REQUESTED, "Study request from " + name(e.requester()),
+                        name(e.requester()) + " wants to study with you (" + score + "% compatible). Accept to meet up.",
+                        MATCHES_LINK);
+                notifications.hint(e.requester(), "matches");
+            }
+            case MatchEvent.Cancelled e -> {
+                notifications.notify(e.other(), Notification.Type.MATCH_CANCELLED, "Request withdrawn",
+                        name(e.cancelledBy()) + " withdrew their study request.", MATCHES_LINK);
+                notifications.hint(e.cancelledBy(), "matches");
+            }
+            case MatchEvent.MessageSent e -> {
+                // One unread chat alert at a time is enough; the open chat updates live either way.
+                if (notifications.hasUnread(e.recipient(), Notification.Type.CHAT_MESSAGE)) {
+                    notifications.hint(e.recipient(), "chat");
+                } else {
+                    notifications.notify(e.recipient(), Notification.Type.CHAT_MESSAGE, "New message from " + name(e.sender()),
+                            e.preview(), MATCHES_LINK);
+                }
+                notifications.hint(e.sender(), "chat");
             }
         }
     }

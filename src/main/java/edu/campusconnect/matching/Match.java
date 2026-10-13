@@ -31,8 +31,13 @@ public class Match {
     @Id
     private UUID id = UUID.randomUUID();
 
-    @Column(name = "round_id", nullable = false)
+    /** The matching round that proposed this pair; null for a direct request between two students. */
+    @Column(name = "round_id")
     private UUID roundId;
+
+    /** The student who sent a direct request (and has therefore already accepted); null for round proposals. */
+    @Column(name = "requested_by")
+    private UUID requestedBy;
 
     @Column(name = "student_a", nullable = false)
     private UUID studentA;
@@ -97,6 +102,14 @@ public class Match {
         this.createdAt = now;
         this.expiresAt = expiresAt;
         this.sharedSubjectIds.addAll(score.sharedSubjects());
+    }
+
+    /** A direct request from {@code requester} to {@code target}; the requester has accepted by sending it. */
+    public static Match request(UUID requester, UUID target, CompatibilityScorer.Score score, Instant now, Instant expiresAt) {
+        Match match = new Match(null, requester, target, score, now, expiresAt);
+        match.requestedBy = requester;
+        match.acceptedA = true;
+        return match;
     }
 
     public boolean involves(UUID studentId) {

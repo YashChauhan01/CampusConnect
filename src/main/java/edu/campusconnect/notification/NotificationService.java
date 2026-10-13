@@ -53,6 +53,12 @@ public class NotificationService {
         afterCommit(() -> sendToUser(studentId, new Push("NOTIFICATION", topicOf(type), view)));
     }
 
+    /** Whether the student still has an unread notification of this type (used to avoid piling up chat alerts). */
+    @Transactional(readOnly = true)
+    public boolean hasUnread(UUID studentId, Notification.Type type) {
+        return notifications.hasUnread(studentId, type);
+    }
+
     /** Tells a student's clients that data on {@code topic} (matches, hackathons, ...) changed and should be refetched. */
     public void hint(UUID studentId, String topic) {
         afterCommit(() -> sendToUser(studentId, new Push("REFRESH", topic, null)));
@@ -115,7 +121,11 @@ public class NotificationService {
     }
 
     private static String topicOf(Notification.Type type) {
-        return type == Notification.Type.TEAMS_PUBLISHED ? "hackathons" : "matches";
+        return switch (type) {
+            case TEAMS_PUBLISHED -> "hackathons";
+            case CHAT_MESSAGE -> "chat";
+            default -> "matches";
+        };
     }
 
     static View toView(Notification n) {

@@ -1,6 +1,10 @@
 package edu.campusconnect.matching;
 
 import edu.campusconnect.security.CurrentStudent;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -8,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,14 +20,44 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/matching")
 public class MatchController {
 
+    public record StudyRequest(@NotNull UUID studentId) {}
+
+    public record MessageBody(@NotBlank
+                              @Size(max = ChatService.MAX_LENGTH) String body) {}
+
     private final CurrentStudent current;
     private final MatchService matching;
     private final MatchGraphService graphs;
+    private final ChatService chat;
 
-    public MatchController(CurrentStudent current, MatchService matching, MatchGraphService graphs) {
+    public MatchController(CurrentStudent current, MatchService matching, MatchGraphService graphs, ChatService chat) {
         this.current = current;
         this.matching = matching;
         this.graphs = graphs;
+        this.chat = chat;
+    }
+
+    /** Sends a direct study request to a classmate who is available on campus. */
+    @PostMapping("/requests")
+    public MatchService.MatchView request(@Valid @RequestBody StudyRequest body) {
+        return matching.request(current.require().getId(), body.studentId());
+    }
+
+    /** Withdraws a pending request the student sent. */
+    @PostMapping("/matches/{id}/cancel")
+    public MatchService.MatchView cancel(@PathVariable UUID id) {
+        return matching.cancel(current.require().getId(), id);
+    }
+
+    @GetMapping("/matches/{id}/messages")
+    public List<ChatService.MessageView> messages(@PathVariable UUID id) {
+        return chat.list(current.require().getId(), id);
+    }
+
+    @PostMapping("/matches/{id}/messages")
+    public ChatService.MessageView send(@PathVariable UUID id,
+                                        @Valid @RequestBody MessageBody body) {
+        return chat.send(current.require().getId(), id, body.body());
     }
 
     /** The student's live proposal or confirmed match; 204 if there is none. */

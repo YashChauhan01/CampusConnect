@@ -17,6 +17,9 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     @Query("select count(n) from Notification n where n.studentId = :studentId and n.readAt is null")
     long countUnread(@Param("studentId") UUID studentId);
 
+    @Query("select count(n) > 0 from Notification n where n.studentId = :studentId and n.type = :type and n.readAt is null")
+    boolean hasUnread(@Param("studentId") UUID studentId, @Param("type") Notification.Type type);
+
     @Modifying
     @Query("update Notification n set n.readAt = :now where n.studentId = :studentId and n.readAt is null")
     int markAllRead(@Param("studentId") UUID studentId, @Param("now") Instant now);

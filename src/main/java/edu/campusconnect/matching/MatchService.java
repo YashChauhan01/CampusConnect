@@ -50,9 +50,13 @@ public class MatchService {
 
     public record Breakdown(double knowledge, double reciprocity, double breadth, double proximity) {}
 
+    /**
+     * @param direct         a request one student sent to another (not a pairing from a matching round)
+     * @param requestedByYou the viewer sent this direct request
+     */
     public record MatchView(UUID id, Match.Status status, int score, Breakdown breakdown, Partner partner,
                             List<String> sharedSubjects, boolean youAccepted, boolean partnerAccepted,
-                            Instant createdAt, Instant expiresAt) {}
+                            Instant createdAt, Instant expiresAt, boolean direct, boolean requestedByYou) {}
 
     public record Suggestion(UUID studentId, String name, String zone, int score, List<String> sharedSubjects,
                              Breakdown breakdown) {}
@@ -164,6 +168,56 @@ public class MatchService {
     }
 
     // ---- student actions ------------------------------------------------------------------------------------------
+
+    /**
+     * Sends a direct study request to a classmate who is available on campus. The sender counts as having accepted;
+     * the match is confirmed when the other student accepts. Both students must be free (no live match), the pair
+     * must not have declined each other recently, and they must share a subject of interest.
+     */
+    @Transactional
+    public MatchView request(UUID requesterId, UUID targetId) {
+        if (requesterId.equals(targetId)) {
+            throw ApiException.badRequest("You cannot send a request to yourself");
+        }
+        Instant now = clock.instant();
+        housekeeping(now);
+        Presence mine = presences.findById(requesterId).filter(p -> p.isActive(now))
+                .orElseThrow(() -> ApiException.conflict("Check in on campus before sending a request"));
+        Presence theirs = presences.findById(targetId).filter(p -> p.isActive(now))
+                .filter(p -> p.getStatus() == Presence.Status.AVAILABLE)
+                .orElseThrow(() -> ApiException.conflict("This student is no longer available on campus"));
+        if (matches.findLiveFor(requesterId).isPresent()) {
+            throw ApiException.conflict("You already have an active match or request");
+        }
+        if (matches.findLiveFor(targetId).isPresent()) {
+            throw ApiException.conflict(theirs.getStudent().getFullName() + " is already in a match right now");
+        }
+        boolean declinedRecently = matches.findDeclinedSince(now.minus(props.declineCooldown()), List.of(requesterId)).stream()
+                .anyMatch(m -> m.involves(targetId));
+        if (declinedRecently) {
+            throw ApiException.conflict("One of you declined recently; try someone else for now");
+        }
+        Map<UUID, Candidate> byId = loader.load(List.of(mine, theirs)).stream()
+                .collect(Collectors.toMap(Candidate::studentId, c -> c));
+        CompatibilityScorer.Score score = scorer.score(byId.get(requesterId), byId.get(targetId))
+                .orElseThrow(() -> ApiException.badRequest("You do not share a subject you want to study"));
+        Match match = matches.save(Match.request(requesterId, targetId, score, now, now.plus(props.proposalTtl())));
+        events.publishEvent(new MatchEvent.Requested(match.getId(), requesterId, targetId));
+        return view(match, requesterId);
+    }
+
+    /** Withdraws a direct request that has not been answered yet; no cool-down applies. */
+    @Transactional
+    public MatchView cancel(UUID studentId, UUID matchId) {
+        Match match = lockFor(studentId, matchId);
+        if (match.getStatus() != Match.Status.PROPOSED || !studentId.equals(match.getRequestedBy())) {
+            throw ApiException.conflict("Only a pending request you sent can be withdrawn");
+        }
+        match.setStatus(Match.Status.EXPIRED);
+        match.setDecidedAt(clock.instant());
+        events.publishEvent(new MatchEvent.Cancelled(match.getId(), studentId, match.partnerOf(studentId)));
+        return view(match, studentId);
+    }
 
     @Transactional
     public MatchView accept(UUID studentId, UUID matchId) {
@@ -344,7 +398,8 @@ public class MatchService {
                     new Breakdown(m.getKnowledge(), m.getReciprocity(), m.getBreadth(), m.getProximity()),
                     new Partner(partner.getId(), partner.getFullName(), zone, partner.getBio(), email),
                     m.getSharedSubjectIds().stream().map(names::get).filter(java.util.Objects::nonNull).sorted().toList(),
-                    m.hasAccepted(viewer), m.hasAccepted(partner.getId()), m.getCreatedAt(), m.getExpiresAt());
+                    m.hasAccepted(viewer), m.hasAccepted(partner.getId()), m.getCreatedAt(), m.getExpiresAt(),
+                    m.getRequestedBy() != null, viewer.equals(m.getRequestedBy()));
         }).toList();
     }
 }
