@@ -130,7 +130,7 @@ Generation is reproducible via `app.seed.random-seed`; every account uses `passw
 committed file `scripts/seed-accounts.csv` (rebuilt from the database if it is missing). Check-ins expire after 15
 minutes, so the seeder also puts the generated students back on campus at start-up and every five minutes
 (`app.seed.keep-alive=false` disables that). Automatic matching rounds run every two minutes in the dev profile
-(`APP_MATCHING_ROUND_INTERVAL`), which keeps most students free to receive a request. `python scripts/simulate.py` then drives every flow against the running server and prints
+(`APP_MATCHING_ROUND_INTERVAL`), which keeps most students free to receive a request. The demo accounts also get a past: three finished study sessions with chat history and read/unread notifications (Asha with Dev and Ravi, Ravi with Ishaan), created once on a database that has none (`app.seed.demo-history=false` disables it). `python scripts/simulate.py` then drives every flow against the running server and prints
 a latency table. Administrators get a **Match graph** page: each available student is a node (coloured by zone), a line
 is a compatible pair, and green lines are the pairs chosen by the maximum-weight matching. Click a student to see the
 candidates and the score breakdown. The page also compares the optimal matching with a greedy baseline, shows the
