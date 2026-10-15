@@ -19,6 +19,16 @@ class MatchScheduler {
         this.service = service;
     }
 
+    /** Expires stale proposals and ends confirmed matches that ran out of time, independent of the round interval. */
+    @Scheduled(fixedDelay = 30_000, initialDelay = 30_000)
+    void sweep() {
+        try {
+            service.sweep();
+        } catch (RuntimeException e) {
+            log.error("Match housekeeping failed", e);
+        }
+    }
+
     @Scheduled(fixedDelayString = "${app.matching.round-interval:20s}", initialDelayString = "${app.matching.round-interval:20s}")
     void tick() {
         try {

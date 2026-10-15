@@ -54,6 +54,10 @@ class NotificationListener {
                 notifications.hint(e.studentA(), "matches");
                 notifications.hint(e.studentB(), "matches");
             }
+            case MatchEvent.Superseded e -> {
+                notifications.hint(e.studentA(), "matches");
+                notifications.hint(e.studentB(), "matches");
+            }
             case MatchEvent.Requested e -> {
                 int score = matches.findById(e.matchId()).map(m -> (int) Math.round(m.getWeight() * 100)).orElse(0);
                 notifications.notify(e.target(), Notification.Type.MATCH_REQUESTED, "Study request from " + name(e.requester()),

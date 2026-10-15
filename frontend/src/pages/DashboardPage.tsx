@@ -8,6 +8,7 @@ import { initials } from '../components/Layout';
 import { Modal } from '../components/Modal';
 import { Alert, EmptyState, PageHeader, Pill, ScoreBadge } from '../components/ui';
 import { useAction, useCountdown, useLoad } from '../hooks';
+import { checkInRequest } from '../lib-presence';
 import { useRealtime } from '../realtime/RealtimeContext';
 
 export function DashboardPage() {
@@ -28,10 +29,14 @@ export function DashboardPage() {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const action = useAction();
 
+  // Follow the server's zone only when it really changes. Depending on the whole object would reset the student's own
+  // dropdown choice every time anyone on campus checks in (each presence change reloads it).
+  const serverZone = mine.data?.zoneId;
+  const firstZone = zones.data?.[0]?.id;
   useEffect(() => {
-    if (mine.data) setZoneId(mine.data.zoneId);
-    else if (zones.data?.length) setZoneId((z) => (z === '' ? zones.data![0].id : z));
-  }, [mine.data, zones.data]);
+    if (serverZone !== undefined) setZoneId(serverZone);
+    else if (firstZone !== undefined) setZoneId((z) => (z === '' ? firstZone : z));
+  }, [serverZone, firstZone]);
 
   if (!profile) return null;
   const open = events.data?.filter((h) => h.status === 'OPEN') ?? [];
@@ -50,7 +55,7 @@ export function DashboardPage() {
   async function checkIn() {
     if (zoneId === '') return;
     await action.run(async () => {
-      await presence.checkIn({ zoneId, status: 'AVAILABLE' });
+      await presence.checkIn(checkInRequest(zoneId, checkedIn ? mine.data : undefined, profile));
       mine.reload();
       available.reload();
     });

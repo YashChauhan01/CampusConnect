@@ -26,6 +26,8 @@ interface RealtimeValue {
 
 const EMPTY_INBOX: Inbox = { items: [], unread: 0 };
 const TOAST_MS = 7000;
+/** Presence changes fire for every check-in on campus; reload at most this often instead of once per event. */
+const PRESENCE_COALESCE_MS = 1500;
 const MAX_ITEMS = 50;
 
 const RealtimeContext = createContext<RealtimeValue | null>(null);
@@ -45,6 +47,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [versions, setVersions] = useState<Record<string, number>>({});
   const timers = useRef(new Map<string, number>());
+  const presenceTimer = useRef<number | null>(null);
 
   const dismissToast = useCallback((id: string) => {
     setToasts((current) => current.filter((t) => t.id !== id));
@@ -57,6 +60,15 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
   const handlePush = useCallback(
     (push: Push) => {
+      if (push.topic === 'presence' && push.kind === 'REFRESH') {
+        if (presenceTimer.current === null) {
+          presenceTimer.current = window.setTimeout(() => {
+            presenceTimer.current = null;
+            setVersions((v) => ({ ...v, presence: (v.presence ?? 0) + 1 }));
+          }, PRESENCE_COALESCE_MS);
+        }
+        return;
+      }
       setVersions((v) => ({ ...v, [push.topic]: (v[push.topic] ?? 0) + 1 }));
       const n: NotificationView | null = push.notification;
       if (push.kind === 'NOTIFICATION' && n) {
@@ -106,6 +118,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     const pendingTimers = timers.current;
     return () => {
       cancelled = true;
+      if (presenceTimer.current !== null) window.clearTimeout(presenceTimer.current);
+      presenceTimer.current = null;
       void client.deactivate();
       pendingTimers.forEach((t) => window.clearTimeout(t));
       pendingTimers.clear();

@@ -9,8 +9,10 @@ import { SuggestionRow, connectBlocker } from '../components/Connect';
 import { Modal } from '../components/Modal';
 import { Alert, EmptyState, Field, LevelPill, PageHeader, Spinner, levelLabel } from '../components/ui';
 import { useAction, useCountdown, useLoad } from '../hooks';
+import { checkInRequest } from '../lib-presence';
 import { useRealtime } from '../realtime/RealtimeContext';
 
+const PAGE = 30;
 const PINS = [[26, 36], [74, 28], [44, 72], [78, 74], [16, 74], [56, 22], [88, 50], [10, 40]];
 
 export function CampusPage() {
@@ -33,6 +35,18 @@ export function CampusPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const checkOut = useAction();
+  const move = useAction();
+  const [shown, setShown] = useState(PAGE);
+  useEffect(() => setShown(PAGE), [zoneFilter, query]);
+
+  /** Check in at (or move to) a zone straight from the map; keeps the student's status, subjects and note. */
+  async function checkInHere(zone: number) {
+    await move.run(async () => {
+      await presence.checkIn(checkInRequest(zone, checkedIn ? mine.data : undefined, profile));
+      mine.reload();
+      available.reload();
+    });
+  }
 
   async function leave() {
     await checkOut.run(async () => {
@@ -51,7 +65,9 @@ export function CampusPage() {
     .filter((p) => zoneFilter === undefined || p.zoneId === zoneFilter)
     .filter((p) => !q || p.name.toLowerCase().includes(q) || p.subjects.some((s) => s.name.toLowerCase().includes(q))
       || (p.requirements ?? '').toLowerCase().includes(q));
-  const selectedZone = zones.data?.find((z) => z.id === zoneFilter)?.name;
+  const selectedZoneInfo = zones.data?.find((z) => z.id === zoneFilter);
+  const selectedZone = selectedZoneInfo?.name;
+  const inSelectedZone = people.length;
   const vibe = (n: number) => (n >= 30 ? 'High energy' : n >= 15 ? 'Focused' : n > 0 ? 'Quiet' : 'Empty');
   const blocker = connectBlocker(current.data, checkedIn);
   const myZoneId = checkedIn ? here?.zoneId : undefined;
@@ -175,6 +191,43 @@ export function CampusPage() {
         </section>
       </div>
 
+      {selectedZoneInfo && (
+        <section className="card zone-detail" aria-label={`People in ${selectedZoneInfo.name}`}>
+          <div className="card-head">
+            <div>
+              <span className="eyebrow">Selected zone</span>
+              <h2>{selectedZoneInfo.name}</h2>
+              <span className="muted small">
+                {vibe(counts.get(selectedZoneInfo.id) ?? 0)} · {counts.get(selectedZoneInfo.id) ?? 0} peers available
+                {selectedZoneInfo.id === myZoneId && ' · you are checked in here'}
+              </span>
+            </div>
+            <div className="row" style={{ margin: 0 }}>
+              {selectedZoneInfo.id !== myZoneId && (
+                <button className="button" onClick={() => void checkInHere(selectedZoneInfo.id)} disabled={move.pending}>
+                  <MapPin aria-hidden="true" />
+                  {checkedIn ? 'Move here' : 'Check in here'}
+                </button>
+              )}
+              <button className="button secondary" onClick={() => setZoneFilter(undefined)}>
+                Show all zones
+              </button>
+            </div>
+          </div>
+          <Alert>{move.error}</Alert>
+          {inSelectedZone === 0 ? (
+            <EmptyState>Nobody else is available in {selectedZoneInfo.name} right now.</EmptyState>
+          ) : (
+            <ul className="people">
+              {people.slice(0, 6).map((p) => (
+                <PersonCard key={p.studentId} person={p} />
+              ))}
+            </ul>
+          )}
+          {inSelectedZone > 6 && <p className="muted small" style={{ margin: '0.5rem 0 0' }}>and {inSelectedZone - 6} more in the full list below</p>}
+        </section>
+      )}
+
       <section className="card">
         <div className="card-head">
           <div>
@@ -239,11 +292,18 @@ export function CampusPage() {
         {available.loading && !available.data ? (
           <Spinner />
         ) : people.length ? (
-          <ul className="people">
-            {people.map((p) => (
-              <PersonCard key={p.studentId} person={p} />
-            ))}
-          </ul>
+          <>
+            <ul className="people">
+              {people.slice(0, shown).map((p) => (
+                <PersonCard key={p.studentId} person={p} />
+              ))}
+            </ul>
+            {people.length > shown && (
+              <button className="button secondary" style={{ marginTop: '0.75rem' }} onClick={() => setShown((n) => n + PAGE)}>
+                Show more ({people.length - shown} left)
+              </button>
+            )}
+          </>
         ) : (
           <EmptyState>{q ? `Nobody matching “${query}” is available right now.` : 'Nobody is available right now.'}</EmptyState>
         )}

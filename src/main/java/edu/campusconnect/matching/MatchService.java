@@ -152,6 +152,9 @@ public class MatchService {
     PoolSnapshot poolSnapshot(Instant now) {
         Set<UUID> busy = new HashSet<>();
         for (Match m : matches.findAllLive()) {
+            if (m.getStatus() == Match.Status.PROPOSED && !m.getExpiresAt().isAfter(now)) {
+                continue; // expired, just not swept yet
+            }
             busy.add(m.getStudentA());
             busy.add(m.getStudentB());
         }
@@ -186,6 +189,9 @@ public class MatchService {
         Presence theirs = presences.findById(targetId).filter(p -> p.isActive(now))
                 .filter(p -> p.getStatus() == Presence.Status.AVAILABLE)
                 .orElseThrow(() -> ApiException.conflict("This student is no longer available on campus"));
+        // An automatic proposal nobody has answered yet is only a suggestion: a deliberate request replaces it.
+        supersedeUnanswered(requesterId, now);
+        supersedeUnanswered(targetId, now);
         if (matches.findLiveFor(requesterId).isPresent()) {
             throw ApiException.conflict("You already have an active match or request");
         }
@@ -204,6 +210,17 @@ public class MatchService {
         Match match = matches.save(Match.request(requesterId, targetId, score, now, now.plus(props.proposalTtl())));
         events.publishEvent(new MatchEvent.Requested(match.getId(), requesterId, targetId));
         return view(match, requesterId);
+    }
+
+    private void supersedeUnanswered(UUID studentId, Instant now) {
+        matches.findLiveFor(studentId)
+                .filter(m -> m.getStatus() == Match.Status.PROPOSED && m.getRoundId() != null
+                        && !m.isAcceptedA() && !m.isAcceptedB())
+                .ifPresent(m -> {
+                    m.setStatus(Match.Status.EXPIRED);
+                    m.setDecidedAt(now);
+                    events.publishEvent(new MatchEvent.Superseded(m.getId(), m.getStudentA(), m.getStudentB()));
+                });
     }
 
     /** Withdraws a direct request that has not been answered yet; no cool-down applies. */
@@ -273,7 +290,10 @@ public class MatchService {
 
     @Transactional(readOnly = true)
     public Optional<MatchView> current(UUID studentId) {
-        return matches.findLiveFor(studentId).map(m -> view(m, studentId));
+        Instant now = clock.instant();
+        return matches.findLiveFor(studentId)
+                .filter(m -> m.getStatus() != Match.Status.PROPOSED || m.getExpiresAt().isAfter(now))
+                .map(m -> view(m, studentId));
     }
 
     @Transactional(readOnly = true)
@@ -320,6 +340,12 @@ public class MatchService {
             return;
         }
         matches.findLiveFor(event.studentId()).ifPresent(m -> end(m, clock.instant()));
+    }
+
+    /** Periodic cleanup between rounds, so expiry does not depend on the (configurable, possibly long) round interval. */
+    @Transactional
+    public void sweep() {
+        housekeeping(clock.instant());
     }
 
     /** Expires stale proposals and closes confirmed matches that ran out of time. */

@@ -11,9 +11,14 @@ export function Modal({ title, subtitle, onClose, children, wide = false }: {
 }) {
   const titleId = useId();
   const panel = useRef<HTMLDivElement>(null);
+  // Parents pass a fresh onClose on every render (the campus page re-renders every second for its countdown). Keeping
+  // it in a ref means the effect below runs once per open; otherwise it would re-focus the dialog on every tick and
+  // pull the cursor out of whatever field the student is typing in.
+  const close = useRef(onClose);
+  close.current = onClose;
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close.current();
     window.addEventListener('keydown', onKey);
     const previous = document.activeElement as HTMLElement | null;
     panel.current?.focus();
@@ -23,7 +28,7 @@ export function Modal({ title, subtitle, onClose, children, wide = false }: {
       document.body.style.overflow = '';
       previous?.focus?.();
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>

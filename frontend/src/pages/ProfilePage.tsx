@@ -182,7 +182,7 @@ export function ProfilePage() {
             <div>
               <strong>{profile.fullName}</strong>
               <span className="muted small">
-                {profile.email} · {profile.subjects.length} subjects · {profile.skills.length} skills
+                {profile.email} · {profile.subjects.length} subject{profile.subjects.length === 1 ? '' : 's'} · {profile.skills.length} skill{profile.skills.length === 1 ? '' : 's'}
               </span>
             </div>
             <span className="status-chip" style={{ marginLeft: 'auto' }}>

@@ -122,10 +122,11 @@ class MatchIntegrationTest extends IntegrationTest {
     void unansweredProposalExpiresAndStudentsAreMatchedAgain() throws Exception {
         ashaAndRaviAvailable();
         matching.runRound();
+        String id = currentMatch(asha).get("id").asText();
         jdbc.update("UPDATE matches SET expires_at = now() - interval '1 second'");
 
         // Late acceptance is refused...
-        act(asha, currentMatch(asha).get("id").asText(), "accept", 409);
+        act(asha, id, "accept", 409);
         // ...and the next round expires the stale proposal and pairs them afresh (expiry is not a decline).
         matching.runRound();
 
@@ -239,6 +240,84 @@ class MatchIntegrationTest extends IntegrationTest {
         mvc.perform(post("/api/v1/matching/find").header("Authorization", bearer(asha)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.partner.name").value("Ravi Patel"));
+    }
+
+    @Test
+    void expiredProposalIsNotCurrentEvenBeforeTheSweepRuns() throws Exception {
+        ashaAndRaviAvailable();
+        matching.runRound();
+        assertThat(currentMatch(asha)).isNotNull();
+        jdbc.update("UPDATE matches SET expires_at = now() - interval '1 second'");
+
+        assertThat(currentMatch(asha)).as("an expired proposal is not shown as a live match").isNull();
+        assertThat(jdbc.queryForObject("SELECT status FROM matches", String.class)).isEqualTo("PROPOSED");
+
+        matching.sweep();
+
+        assertThat(jdbc.queryForObject("SELECT status FROM matches", String.class)).isEqualTo("EXPIRED");
+    }
+
+    @Test
+    void directRequestReplacesAnAutomaticProposalNobodyHasAnsweredYet() throws Exception {
+        ashaAndRaviAvailable();
+        addSubject(meera, "DSA", "BEGINNER");
+        checkIn(meera, library, "AVAILABLE", Map.of());
+        matching.runRound(); // pairs two of the three
+
+        String[] tokens = {asha, ravi, meera};
+        String paired = null;
+        String partner = null;
+        String free = null;
+        for (String t : tokens) {
+            if (currentMatch(t) == null) {
+                free = t;
+            } else if (paired == null) {
+                paired = t;
+            } else {
+                partner = t;
+            }
+        }
+        assertThat(free).as("exactly one student is left over").isNotNull();
+        String freeId = json.readTree(mvc.perform(get("/api/v1/students/me").header("Authorization", bearer(free)))
+                .andReturn().getResponse().getContentAsString()).get("id").asText();
+
+        mvc.perform(postJson("/api/v1/matching/requests", Map.of("studentId", freeId)).header("Authorization", bearer(paired)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.direct").value(true))
+                .andExpect(jsonPath("$.requestedByYou").value(true));
+
+        assertThat(currentMatch(partner)).as("the old partner is released").isNull();
+        assertThat(jdbc.queryForList("SELECT status FROM matches ORDER BY created_at", String.class))
+                .containsExactly("EXPIRED", "PROPOSED");
+    }
+
+    @Test
+    void directRequestIsRefusedOnceTheAutomaticProposalHasBeenAnswered() throws Exception {
+        ashaAndRaviAvailable();
+        addSubject(meera, "DSA", "BEGINNER");
+        checkIn(meera, library, "AVAILABLE", Map.of());
+        matching.runRound();
+
+        String[] tokens = {asha, ravi, meera};
+        String paired = null;
+        String partner = null;
+        String free = null;
+        for (String t : tokens) {
+            if (currentMatch(t) == null) {
+                free = t;
+            } else if (paired == null) {
+                paired = t;
+            } else {
+                partner = t;
+            }
+        }
+        String freeId = json.readTree(mvc.perform(get("/api/v1/students/me").header("Authorization", bearer(free)))
+                .andReturn().getResponse().getContentAsString()).get("id").asText();
+        act(partner, currentMatch(partner).get("id").asText(), "accept", 200);
+
+        mvc.perform(postJson("/api/v1/matching/requests", Map.of("studentId", freeId)).header("Authorization", bearer(paired)))
+                .andExpect(status().isConflict());
+        assertThat(currentMatch(partner).get("youAccepted").asBoolean()).isTrue();
     }
 
     @Test

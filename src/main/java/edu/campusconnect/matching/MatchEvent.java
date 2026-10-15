@@ -28,6 +28,9 @@ public sealed interface MatchEvent {
     /** The sender withdrew a direct request before it was answered. */
     record Cancelled(UUID matchId, UUID cancelledBy, UUID other) implements MatchEvent {}
 
+    /** An unanswered automatic proposal was replaced because one of its students sent or received a direct request. */
+    record Superseded(UUID matchId, UUID studentA, UUID studentB) implements MatchEvent {}
+
     /** A chat message was sent in a confirmed match. */
     record MessageSent(UUID matchId, UUID sender, UUID recipient, String preview) implements MatchEvent {}
 }

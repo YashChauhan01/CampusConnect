@@ -14,6 +14,8 @@ export function connectBlocker(current: MatchView | undefined, checkedIn: boolea
   if (!checkedIn) return 'Check in on campus to send requests';
   if (current?.status === 'ACCEPTED') return `You are matched with ${current.partner.name}`;
   if (current?.status === 'PROPOSED') {
+    // An automatic proposal nobody has answered yet is only a suggestion; a request replaces it.
+    if (!current.direct && !current.youAccepted && !current.partnerAccepted) return null;
     return current.requestedByYou ? `Request pending with ${current.partner.name}` : 'Answer your pending match first';
   }
   return null;
