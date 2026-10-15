@@ -42,22 +42,62 @@ SPRING_PROFILES_ACTIVE=dev docker compose up --build   # PowerShell: $env:SPRING
 
 Login problems usually mean: the email domain is not in `APPROVED_DOMAINS` (default `college.edu`), the email was not verified yet (check Mailpit at http://localhost:8025), or too many attempts (login is rate limited to 8 per 15 minutes per email).
 
-### Option B – No Docker (embedded PostgreSQL, demo data)
+### Option B – No Docker (embedded PostgreSQL, 400 demo students)
+
+Nothing but the three tools below is needed: the database is an embedded PostgreSQL that downloads once and then lives
+in `target/dev-pg`, so no Docker and no separate PostgreSQL install.
+
+**1. Install once**
+
+| Tool | Version | Check |
+|---|---|---|
+| JDK | 21 | `java -version` |
+| Maven | 3.9+ | `mvn -version` |
+| Node.js | 22.12 or newer | `node -v` |
+
+**2. Get the project** (the folder must contain `pom.xml`, `frontend/` and `scripts/seed-accounts.csv`)
 
 ```bash
-# terminal 1 – backend with the dev profile, emails printed to the log, 8 demo students
-mvn -q test-compile exec:java -Dexec.mainClass=edu.campusconnect.DevServer -Dexec.classpathScope=test
-# terminal 2 – frontend with hot reload
-cd frontend && npm ci && npm run dev
+git clone <repository-url> CampusConnect
+cd CampusConnect
 ```
 
-Open http://localhost:5173 and log in as `asha@college.edu` or `ravi@college.edu`, password `password-123456`
-(dev profile only). Interactive API docs are at http://localhost:8080/swagger-ui.html in the dev profile.
+**3. Terminal 1, backend** (the first start downloads dependencies and PostgreSQL, so allow a few minutes; later starts
+take about 30 seconds). Leave it running.
+
+```bash
+mvn -q test-compile exec:java -Dexec.mainClass=edu.campusconnect.DevServer -Dexec.classpathScope=test
+```
+
+Wait for `Fake campus refreshed: ... generated students on campus` in the log. That is the signal that the 8 demo
+accounts and the 400 generated students are in the database.
+
+**4. Terminal 2, frontend**
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+**5. Open http://localhost:5173** and log in with `password-123456` as `asha@college.edu` (administrator),
+`ravi@college.edu`, or any generated student from `scripts/seed-accounts.csv`. Interactive API docs:
+http://localhost:8080/swagger-ui.html.
+
+**Stop** both terminals with Ctrl+C. The data stays in `target/dev-pg`, so the next start picks up where you left off;
+delete that folder to start from scratch (the same 400 students are created again).
+
+If something does not start:
+
+* `could not lock target\dev-pg\epg-lock`: a previous run left PostgreSQL behind. End the `postgres.exe` and `java.exe`
+  processes in Task Manager (or `taskkill /F /IM postgres.exe`), delete `target\dev-pg\epg-lock`, start again.
+* `Port 8080 / 5173 / 54329 is already in use`: another copy of the app is still running; stop it first.
+* The page loads but login fails: the backend is not up yet; wait for the log line above.
 
 ## Tests
 
 ```bash
-mvn verify                                  # 151 backend tests (unit + integration on real PostgreSQL)
+mvn verify                                  # 156 backend tests (unit + integration on real PostgreSQL)
 cd frontend && npm test && npm run lint && npm run build
 mvn test -Dtest=EvaluationReport -Deval=true   # regenerate docs/EVALUATION.md
 ```
@@ -84,9 +124,13 @@ under `app.matching.*`.
 
 ## Demo data and the matching graph
 
-Set `APP_SEED_FAKE_STUDENTS=400` (dev profile) to generate that many verified students with subjects, skills and live
-check-ins (reproducible via `app.seed.random-seed`; every account uses `password-123456`; the list is written to
-`target/seed-accounts.csv`). `python scripts/simulate.py` then drives every flow against the running server and prints
+The dev profile creates 400 verified students with subjects, skills and check-ins the first time it starts, and keeps
+them in the database afterwards (`APP_SEED_FAKE_STUDENTS=0` turns it off, a bigger number tops the database up).
+Generation is reproducible via `app.seed.random-seed`; every account uses `password-123456`. The account list is the
+committed file `scripts/seed-accounts.csv` (rebuilt from the database if it is missing). Check-ins expire after 15
+minutes, so the seeder also puts the generated students back on campus at start-up and every five minutes
+(`app.seed.keep-alive=false` disables that). Automatic matching rounds run every two minutes in the dev profile
+(`APP_MATCHING_ROUND_INTERVAL`), which keeps most students free to receive a request. `python scripts/simulate.py` then drives every flow against the running server and prints
 a latency table. Administrators get a **Match graph** page: each available student is a node (coloured by zone), a line
 is a compatible pair, and green lines are the pairs chosen by the maximum-weight matching. Click a student to see the
 candidates and the score breakdown. The page also compares the optimal matching with a greedy baseline, shows the
@@ -100,7 +144,7 @@ table, and a searchable grid of all teams where clicking a participant shows the
 also proves the role allocation optimal: no cycle of participants trading roles can raise the total fit (checked
 exactly on the role exchange graph). `python scripts/simulate_hackathon.py` registers every seeded student with
 skill-based preferences and checks the whole flow end to end. For a big graph on the match-graph page, start the
-server with `APP_MATCHING_ROUND_INTERVAL=1h` so the automatic 20 s rounds do not pair everyone before you look.
+server with `APP_MATCHING_ROUND_INTERVAL=1h` so the automatic rounds do not pair everyone before you look.
 
 ## Administrators and campus zones
 

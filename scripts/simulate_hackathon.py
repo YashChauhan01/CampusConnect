@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """End-to-end test of hackathon team synthesis with every seeded student (default 400).
 
-Usage: python scripts/simulate_hackathon.py [--base http://localhost:8080] [--accounts target/seed-accounts.csv]
+Usage: python scripts/simulate_hackathon.py [--base http://localhost:8080] [--accounts scripts/seed-accounts.csv]
                                             [--users 400] [--no-publish]
 
 Creates a five-role hackathon as the admin, registers every student with role preferences derived from their own
@@ -13,6 +13,7 @@ students see their own team. Prints a timing table; exits non-zero when a check 
 """
 import argparse
 import csv
+import os
 import math
 import random
 import sys
@@ -49,7 +50,7 @@ def preferences(skills, role_ids, rng):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default="http://localhost:8080")
-    ap.add_argument("--accounts", default="target/seed-accounts.csv")
+    ap.add_argument("--accounts", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed-accounts.csv"))
     ap.add_argument("--users", type=int, default=400)
     ap.add_argument("--threads", type=int, default=16)
     ap.add_argument("--seed", type=int, default=2026)

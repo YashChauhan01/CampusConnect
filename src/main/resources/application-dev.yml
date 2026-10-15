@@ -1,6 +1,13 @@
 # Local development profile (SPRING_PROFILES_ACTIVE=dev). Never use these values in production.
 app:
   admin-emails: asha@college.edu
+  # 400 generated students are created on first start (and kept in the database afterwards); set 0 for none.
+  seed:
+    fake-students: ${APP_SEED_FAKE_STUDENTS:400}
+  # With hundreds of generated students every automatic round pairs them all; a longer interval keeps most of them
+  # free so "Connect" works. A student pressing "Find a peer" still gets an immediate round.
+  matching:
+    round-interval: ${APP_MATCHING_ROUND_INTERVAL:2m}
   jwt-secret: ${JWT_SECRET:dev-only-secret-change-before-deployment-64-characters-minimum-12345}
   mail:
     mode: ${MAIL_MODE:log}
